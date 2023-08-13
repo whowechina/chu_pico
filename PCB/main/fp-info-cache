@@ -1,4 +1,4 @@
-20713074296469267
+20718151510902424
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -87276,6 +87276,13 @@ varistor SIOV
 2
 2
 chu_main
+ChuAcrylic
+
+
+0
+0
+0
+chu_main
 ChuKey
 
 
@@ -87296,6 +87303,20 @@ Tactile Switch
 0
 6
 2
+chu_main
+GP2Y0E03
+
+
+0
+6
+6
+chu_main
+GP2Y0E03_REAL
+
+
+0
+0
+0
 chu_main
 MPR121_BOARD
 UQFN, 20 Pin (https://resurgentsemi.com/wp-content/uploads/2018/09/MPR121_rev5-Resurgent.pdf?d453f8&d453f8), generated with kicad-footprint-generator ipc_noLead_generator.py
