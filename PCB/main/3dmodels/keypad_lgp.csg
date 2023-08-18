@@ -1,0 +1,10 @@
+color([0.752941, 0.752941, 0.752941, 0.5]) {
+	multmatrix([[1, 0, 0, -17], [0, 1, 0, -130], [0, 0, 1, 0], [0, 0, 0, 1]]) {
+		resize(newsize = [256,60,1], auto = [0,0,0], convexity = 0) {
+			linear_extrude(height = 100, $fn = 0, $fa = 12, $fs = 2) {
+				import(file = "keypad_kicad.svg", origin = [0, 0], center = false, dpi = 72, scale = 1, convexity = 1, $fn = 0, $fa = 12, $fs = 2, timestamp = 1691928709);
+			}
+		}
+	}
+}
+

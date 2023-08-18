@@ -1,1 +1,1 @@
-translate([-17,-130]) resize([256,60,1]) linear_extrude(h=100) import("keypad_kicad.svg");
+color("silver",0.5) translate([-17,-130]) resize([256,60,1]) linear_extrude(h=100) import("keypad_kicad.svg");
