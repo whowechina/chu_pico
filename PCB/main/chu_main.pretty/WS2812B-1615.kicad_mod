@@ -2,7 +2,7 @@
   (layer "F.Cu")
   (tedit 600F1431)
   (attr through_hole)
-  (fp_text reference "REF**" (at 0 -2.25) (layer "F.SilkS")
+  (fp_text reference "REF**" (at 0 -2.25 unlocked) (layer "F.SilkS")
     (effects (font (size 1 1) (thickness 0.15)))
     (tstamp e2c229b7-0f91-403e-a4c6-2aa96df9a482)
   )

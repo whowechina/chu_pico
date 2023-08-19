@@ -32,7 +32,7 @@
   (pad "19" thru_hole oval (at 13.97 0 90) (size 1.7 1.7) (drill 1) (layers *.Cu *.Mask) (tstamp 782e9d72-1d5b-4353-9178-3149f697cc20))
   (pad "20" thru_hole oval (at 6.35 -17.78 90) (size 1.7 1.7) (drill 1) (layers *.Cu *.Mask) (tstamp 775000e9-7a80-411f-804c-c3912305821b))
   (model "${KIPRJMOD}/3dmodels/ImageToStl.com_mpr121_breakout_v13.wrl"
-    (offset (xyz -15.24 19.02 5.75))
+    (offset (xyz -15.24 19.02 3.25))
     (scale (xyz 0.3937 0.3937 0.3937))
     (rotate (xyz 0 0 90))
   )
