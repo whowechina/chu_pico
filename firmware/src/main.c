@@ -60,9 +60,9 @@ static void core1_loop()
 
 
 // I2C definitions: port and pin numbers
-#define MPR121_PORT i2c1
-#define MPR121_SDA 6
-#define MPR121_SCL 7
+#define MPR121_PORT i2c0
+#define MPR121_SDA 16
+#define MPR121_SCL 17
 
 // MPR121 I2C definitions: address and frequency.
 #define MPR121_ADDR 0x5A
@@ -72,10 +72,11 @@ static void core1_loop()
 #define MPR121_TOUCH_THRESHOLD 16
 #define MPR121_RELEASE_THRESHOLD 10
 
-#define I2C_PORT i2c1
+#define I2C_PORT i2c0
 #define I2C_I2C_FREQ 200000
-#define I2C_SDA 26
-#define I2C_SCL 27
+#define I2C_SDA 16
+#define I2C_SCL 17
+#define I2C_HUB 19
 
 static void core0_loop_gp2y()
 {
@@ -87,51 +88,25 @@ static void core0_loop_gp2y()
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
 
-    i2c_select(I2C_PORT, 1 << 4);
+    gpio_init(I2C_HUB);
+    gpio_set_dir(I2C_HUB, GPIO_OUT);
+    gpio_put(I2C_HUB, 1);
+
+    i2c_select(I2C_PORT, 0xff);
     gp2y0e_write(I2C_PORT, 0xa8, 0x00);
-
-    i2c_select(I2C_PORT, 1 << 3);
-    vl6180_init(I2C_PORT);
-
-    i2c_select(I2C_PORT, 1 << 5);
-    vl6180_init(I2C_PORT);
 
     sleep_ms(100);
 
-    i2c_select(I2C_PORT, 1 << 3);
-    vl6180_write(I2C_PORT, 0x01b, 0x05);
-    vl6180_write(I2C_PORT, 0x018, 3);
-
-    i2c_select(I2C_PORT, 1 << 5);
-    vl6180_write(I2C_PORT, 0x01b, 0x05);
-    vl6180_write(I2C_PORT, 0x018, 3);
-
-    uint8_t od1 = 0, od2 = 0, od3 = 0;
+    //uint8_t od1 = 0, od2 = 0, od3 = 0;
     while(1) {
         tud_task();
 
         hid_report.buttons = 0xcccc;
         report_usb_hid();
 
-        i2c_select(I2C_PORT, 1 << 4);
+        i2c_select(I2C_PORT, 0xff);
         uint8_t d1 = gp2y0e_dist(I2C_PORT);
-
-        i2c_select(I2C_PORT, 1 << 3);
-        uint8_t d2 = vl6180_dist(I2C_PORT, od2);
-
-        i2c_select(I2C_PORT, 1 << 5);
-        uint8_t d3 = vl6180_dist(I2C_PORT, od3);
-
-        if (d1 != od1 || d2 != od2 || d3 != od3) {
-            if ((d1 == 255) && (d2 = 255) && (d3 == 255)) {
-                printf("---\t---\t---\n");
-            } else {
-                printf("%3d\t%3d\t%3d\n", d1, d2, d3);
-            }
-            od1 = d1;
-            od2 = d2;
-            od3 = d3;
-        }
+        printf("%3d\n", d1);
     }
 }
 

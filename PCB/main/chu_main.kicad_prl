@@ -1,7 +1,7 @@
 {
   "board": {
-    "active_layer": 36,
-    "active_layer_preset": "",
+    "active_layer": 44,
+    "active_layer_preset": "All Copper Layers",
     "auto_track_width": true,
     "hidden_nets": [
       "GND"
@@ -18,9 +18,9 @@
     "selection_filter": {
       "dimensions": false,
       "footprints": false,
-      "graphics": true,
+      "graphics": false,
       "keepouts": false,
-      "lockedItems": false,
+      "lockedItems": true,
       "otherItems": false,
       "pads": false,
       "text": true,
