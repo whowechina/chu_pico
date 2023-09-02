@@ -8,8 +8,16 @@
 #define I2C_HUB_H
 
 #include "hardware/i2c.h"
+#include "board_defs.h"
 
 #define I2C_HUB_ADDR 0x70
+static inline void i2c_hub_init()
+{
+    // pull up gpio TOF_I2C_HUB
+    gpio_init(TOF_I2C_HUB);
+    gpio_set_dir(TOF_I2C_HUB, GPIO_OUT);
+    gpio_put(TOF_I2C_HUB, 1);
+}
 
 static inline void i2c_select(i2c_inst_t *i2c_port, uint8_t chn)
 {

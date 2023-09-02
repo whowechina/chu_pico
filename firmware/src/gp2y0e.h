@@ -6,8 +6,10 @@
 #ifndef GP2Y0E_H
 #define GP2Y0E_H
 
-#define GP2Y0E_DEF_ADDR 0x40
+#include <stdint.h>
 #include "hardware/i2c.h"
+
+#define GP2Y0E_DEF_ADDR 0x40
 
 static inline uint16_t gp2y0e_write(i2c_inst_t *i2c_port, uint8_t addr, uint8_t val)
 {

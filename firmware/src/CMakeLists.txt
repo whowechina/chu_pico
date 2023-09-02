@@ -4,8 +4,7 @@ set(LWIP_ROOT ${PICO_SDK_PATH}/lib/lwip)
 function(make_firmware board board_def)
     pico_sdk_init()
     add_executable(${board}
-                   main.c buttons.c rgb.c save.c config.c setup.c vl6180.c
-                   usb_descriptors.c)
+                   main.c slider.c air.c rgb.c save.c usb_descriptors.c)
     target_compile_definitions(${board} PUBLIC ${board_def})
     pico_enable_stdio_usb(${board} 1)
     pico_enable_stdio_uart(${board} 0)
@@ -29,5 +28,5 @@ function(make_firmware board board_def)
                        COMMAND cp ${board}.uf2 /mnt/d/Code/iidx_pico/firmware/build)
 endfunction()
 
-make_firmware(chu_pico BOARD_IIDX_PICO)
+make_firmware(chu_pico BOARD_CHU_PICO)
 
