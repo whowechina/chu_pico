@@ -85,6 +85,23 @@ void rgb_set_color(unsigned index, uint32_t color)
     rgb_buf[index] = color;
 }
 
+void rgb_key_color(unsigned index, uint32_t color)
+{
+    if (index > 16) {
+        return;
+    }
+    rgb_buf[index * 2] = color;
+}
+
+void rgb_gap_color(unsigned index, uint32_t color)
+{
+    if (index > 15) {
+        return;
+    }
+    rgb_buf[index * 2 + 1] = color;
+}
+
+
 void rgb_init()
 {
     uint pio0_offset = pio_add_program(pio0, &ws2812_program);

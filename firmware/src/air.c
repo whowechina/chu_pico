@@ -35,9 +35,9 @@ void air_init()
     for (int i = 0; i < sizeof(TOF_LIST); i++) {
         sleep_us(10);
         i2c_select(TOF_I2C, 1 << TOF_LIST[i]);
-        gp2y0e_write(TOF_I2C, 0xa8, 0x00); // Accumulation 0:1, 1:5, 2:30, 3:10
+        gp2y0e_write(TOF_I2C, 0xa8, 0); // Accumulation 0:1, 1:5, 2:30, 3:10
         gp2y0e_write(TOF_I2C, 0x3f, 0x30); // Filter 0x00:7, 0x10:5, 0x20:9, 0x30:1
-        gp2y0e_write(TOF_I2C, 0x13, 0x03); // Pulse [3..7]:[40, 80, 160, 240, 320] us
+        gp2y0e_write(TOF_I2C, 0x13, 5); // Pulse [3..7]:[40, 80, 160, 240, 320] us
     }
 }
 
@@ -51,7 +51,9 @@ uint16_t air_value(uint8_t index)
     if (index >= sizeof(TOF_LIST)) {
         return 0;
     }
-    return distances[index];
+    uint16_t dist = distances[index] >> 6;
+
+    return dist < 63 ? dist : 0;
 }
 
 void air_update()

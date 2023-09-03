@@ -9,7 +9,13 @@
 
 #include "bsp/board.h"
 #include "pico/multicore.h"
+#include "pico/bootrom.h"
 #include "pico/stdio.h"
+
+#include "hardware/gpio.h"
+#include "hardware/sync.h"
+#include "hardware/structs/ioqspi.h"
+#include "hardware/structs/sio.h"
 
 #include "tusb.h"
 #include "usb_descriptors.h"
@@ -49,6 +55,22 @@ static void pause_core1(bool pause)
     }
 }
 
+static void fps_count()
+{
+    static uint64_t last = 0;
+    static int fps_counter = 0;
+
+    fps_counter++;
+
+    uint64_t now = time_us_64();
+    if (now - last < 1000000) {
+        return;
+    }
+    last = now;
+    printf("FPS: %d\n", fps_counter);
+    fps_counter = 0;
+}
+
 static void core1_loop()
 {
     while (1) {
@@ -59,31 +81,45 @@ static void core1_loop()
 
 static void core0_loop()
 {
+    for (int i = 0; i < 15; i++) {
+        int x = 15 - i;
+        uint8_t r = (x & 0x01) ? 10 : 0;
+        uint8_t g = (x & 0x02) ? 10 : 0;
+        uint8_t b = (x & 0x04) ? 10 : 0;
+        rgb_gap_color(i, rgb32(r, g, b, false));
+    }
+
     while(1) {
         tud_task();
         hid_report.buttons = 0xcccc;
         report_usb_hid();
-
         slider_update();
         air_update();
 
-        for (int i = 0; i < 32; i++) {
-            bool v = slider_touched(i);
-            printf("%d", v);
+        static uint16_t old_touch = 0;
+        uint16_t touch = slider_hw_touch(0);
+        if (touch != old_touch) {
+            printf("Touch: %04x\n", touch);
+            old_touch = touch;
+        }
+        for (int i = 0; i < 16; i++) {
+            bool k1 = slider_touched(i * 2);
+            bool k2 = slider_touched(i * 2 + 1);
+            uint8_t r = k1 ? 255 : 0;
+            uint8_t g = k2 ? 255 : 0;
+            if (k1 || k2) {
+                printf("U:%3d D:%3d\n", slider_delta(i * 2), slider_delta(i * 2 + 1));
+            }
+            rgb_key_color(i, rgb32(r, g, g, false));
         }
 
         for (int i = 0; i < air_num(); i++) {
-            uint8_t v = air_value(i) >> 4;
-            printf(" %3d", air_value(i));
-            if (v == 255) {
-                rgb_set_color(31 + i, 0);
-            } else {
-                rgb_set_color(31 + i, rgb32(v, v, v, true));
-            }
+            uint8_t v = air_value(i) << 2;
+            rgb_set_color(31 + i, rgb32(v, v, v, false));
         }
-        printf("\n");
 
-        sleep_ms(1);
+        slider_update_baseline();
+        fps_count();
     }
 }
 
