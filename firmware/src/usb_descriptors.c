@@ -51,8 +51,8 @@ tusb_desc_device_t desc_device_joy = {
     .bDeviceProtocol = 0x00,
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor = 0xCaff,
-    .idProduct = USB_PID,
+    .idVendor = 0x0f0d,
+    .idProduct = 0x4092,
     .bcdDevice = 0x0100,
 
     .iManufacturer = 0x01,
@@ -130,7 +130,7 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
 const char *string_desc_arr[] = {
     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
     "WHowe"       ,              // 1: Manufacturer
-    "Pico IIDX Controller",      // 2: Product
+    "Chu Pico Controller",       // 2: Product
     "654321",                    // 3: Serials, should use chip ID
     "Button 1",
     "Button 2",

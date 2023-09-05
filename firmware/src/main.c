@@ -29,19 +29,20 @@
    { uint64_t _t = time_us_64(); func; \
      printf(#func ":%lld\n", time_us_64() - _t); }
 
-struct {
-    uint16_t buttons;
-    uint8_t joy[6];
-} hid_report;
+struct __attribute__((packed)) {
+    uint16_t buttons; // 16 buttons; see JoystickButtons_t for bit mapping
+    uint8_t  HAT;    // HAT switch; one nibble w/ unused nibble
+    uint32_t axis;  // slider touch data
+    uint8_t  VendorSpec;
+} hid_joy;
 
 void report_usb_hid()
 {
     if (tud_hid_ready()) {
-        hid_report.joy[2] = 0;
-        hid_report.joy[3] = 64;
-        hid_report.joy[4] = 128;
-        hid_report.joy[5] = 192;
-        tud_hid_n_report(0x00, REPORT_ID_JOYSTICK, &hid_report, sizeof(hid_report));
+        hid_joy.buttons = 0;
+        hid_joy.HAT = 0;
+        hid_joy.VendorSpec = 0;
+        tud_hid_n_report(0x00, REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy));
     }
 }
 
@@ -91,7 +92,6 @@ static void core0_loop()
 
     while(1) {
         tud_task();
-        hid_report.buttons = 0xcccc;
         report_usb_hid();
         slider_update();
         air_update();
@@ -102,9 +102,18 @@ static void core0_loop()
             printf("Touch: %04x\n", touch);
             old_touch = touch;
         }
+        hid_joy.axis = 0;
         for (int i = 0; i < 16; i++) {
             bool k1 = slider_touched(i * 2);
             bool k2 = slider_touched(i * 2 + 1);
+
+            if (k1) {
+                hid_joy.axis |= 1 << (30 - i * 2);
+            }
+            if (k2) {
+                hid_joy.axis |= 1 << (31 - i * 2);
+            }
+
             uint8_t r = k1 ? 255 : 0;
             uint8_t g = k2 ? 255 : 0;
             if (k1 || k2) {
@@ -112,7 +121,7 @@ static void core0_loop()
             }
             rgb_key_color(i, rgb32(r, g, g, false));
         }
-
+        hid_joy.axis ^= 0x80808080; // some magic number from CrazyRedMachine
         for (int i = 0; i < air_num(); i++) {
             uint8_t v = air_value(i) << 2;
             rgb_set_color(31 + i, rgb32(v, v, v, false));

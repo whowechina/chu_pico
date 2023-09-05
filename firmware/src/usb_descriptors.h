@@ -22,22 +22,37 @@ enum {
 // Joystick Report Descriptor Template - Based off Drewol/rp2040-gamecon
 // Button Map | X | Y
 #define GAMECON_REPORT_DESC_JOYSTICK(...)                                      \
-  HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                      \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                  \
       HID_USAGE(HID_USAGE_DESKTOP_JOYSTICK),                                   \
       HID_COLLECTION(HID_COLLECTION_APPLICATION),                              \
-      __VA_ARGS__ HID_USAGE_PAGE(HID_USAGE_PAGE_BUTTON), HID_USAGE_MIN(1),     \
-      HID_USAGE_MAX(13),                                             \
-      HID_LOGICAL_MIN(0), HID_LOGICAL_MAX(1), HID_REPORT_COUNT(13),  \
-      HID_REPORT_SIZE(1), HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),   \
-      HID_REPORT_COUNT(1), HID_REPORT_SIZE(16 - 13), /*Padding*/               \
+      __VA_ARGS__ HID_USAGE_PAGE(HID_USAGE_PAGE_BUTTON),                       \
+      HID_USAGE_MIN(1), HID_USAGE_MAX(16),                                     \
+      HID_LOGICAL_MIN(0), HID_LOGICAL_MAX(1),                                  \
+      HID_REPORT_COUNT(16), HID_REPORT_SIZE(1),                                \
+      HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                       \
+      HID_REPORT_COUNT(16 - 16), HID_REPORT_SIZE(1), /*Padding*/               \
       HID_INPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),                   \
-      HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_LOGICAL_MIN(0x00),           \
-      HID_LOGICAL_MAX_N(0x00ff, 2),   /* Below is Joystick/analog */           \
+                                                                               \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                  \
+      HID_USAGE(HID_USAGE_DESKTOP_HAT_SWITCH),                                 \
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX(0xff),                            \
+      HID_REPORT_SIZE(8), HID_REPORT_COUNT(1),                                 \
+      HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                       \
+                                                                               \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                  \
       HID_USAGE(HID_USAGE_DESKTOP_X), HID_USAGE(HID_USAGE_DESKTOP_Y),          \
       HID_USAGE(HID_USAGE_DESKTOP_Z), HID_USAGE(HID_USAGE_DESKTOP_RX),         \
-      HID_USAGE(HID_USAGE_DESKTOP_RY), HID_USAGE(HID_USAGE_DESKTOP_RZ),        \
-      HID_REPORT_COUNT(6), HID_REPORT_SIZE(8), \
-      HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), HID_COLLECTION_END
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX(0xff), /* Analog */               \
+      HID_REPORT_SIZE(8), HID_REPORT_COUNT(4),                                 \
+      HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                       \
+                                                                               \
+      HID_USAGE_PAGE_N(HID_USAGE_PAGE_VENDOR, 2),                              \
+      HID_USAGE(0),                                 \
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX(0xff),                            \
+      HID_REPORT_SIZE(8), HID_REPORT_COUNT(1),                                 \
+      HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                       \
+                                                                               \
+      HID_COLLECTION_END
 
 // Light Map
 #define GAMECON_REPORT_DESC_LIGHTS(...)                                        \
