@@ -96,12 +96,14 @@ static void core0_loop()
         slider_update();
         air_update();
 
+#if 0
         static uint16_t old_touch = 0;
         uint16_t touch = slider_hw_touch(0);
         if (touch != old_touch) {
             printf("Touch: %04x\n", touch);
             old_touch = touch;
         }
+#endif
         hid_joy.axis = 0;
         for (int i = 0; i < 16; i++) {
             bool k1 = slider_touched(i * 2);
@@ -116,9 +118,6 @@ static void core0_loop()
 
             uint8_t r = k1 ? 255 : 0;
             uint8_t g = k2 ? 255 : 0;
-            if (k1 || k2) {
-                printf("U:%3d D:%3d\n", slider_delta(i * 2), slider_delta(i * 2 + 1));
-            }
             rgb_key_color(i, rgb32(r, g, g, false));
         }
         hid_joy.axis ^= 0x80808080; // some magic number from CrazyRedMachine
@@ -158,6 +157,7 @@ uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id,
                                hid_report_type_t report_type, uint8_t *buffer,
                                uint16_t reqlen)
 {
+    printf("Get from USB %d-%d\n", report_id, report_type);
     return 0;
 }
 
@@ -167,10 +167,13 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
                            hid_report_type_t report_type, uint8_t const *buffer,
                            uint16_t bufsize)
 {
-    if ((report_id == REPORT_ID_LIGHTS) &&
-        (report_type == HID_REPORT_TYPE_OUTPUT)) {
-        if (bufsize >= 0) {
-            return;
+    if (report_type == HID_REPORT_TYPE_OUTPUT) {
+        if (report_id == REPORT_ID_LED_SLIDER_15) {
+            printf("Slider 16: %d\n", bufsize);
+        } else if (report_id == REPORT_ID_LED_SLIDER_16) {
+            printf("Slider 15: %d\n", bufsize);
+        } else if (report_id == REPORT_ID_LED_TOWER_6) {
+            printf("Tower 6: %d\n", bufsize);
         }
     }
 }

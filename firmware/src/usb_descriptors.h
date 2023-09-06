@@ -6,9 +6,10 @@
 
 enum {
   REPORT_ID_JOYSTICK = 1,
-  REPORT_ID_LIGHTS,
-  REPORT_ID_KEYBOARD,
-  REPORT_ID_MOUSE,
+  REPORT_ID_LED_SLIDER_16 = 4,
+  REPORT_ID_LED_SLIDER_15 = 5,
+  REPORT_ID_LED_TOWER_6 = 6,
+  REPORT_ID_LED_COMPRESSED = 11,
 };
 
 // because they are missing from tusb_hid.h
@@ -54,33 +55,63 @@ enum {
                                                                                \
       HID_COLLECTION_END
 
-// Light Map
-#define GAMECON_REPORT_DESC_LIGHTS(...)                                        \
+/*
+  report id 4 : slider first 48 leds (16 rgb zones, brg order)
+  report id 5 : slider remaining 45 leds (15 rgb zones, brg order)
+  report id 6 : tower 18 leds (6 rgb, brg order)
+*/
+
+// Slider First 16 LEDs
+#define GAMECON_REPORT_DESC_LED_SLIDER_16(...)                                 \
   HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_USAGE(0x00),                     \
       HID_COLLECTION(HID_COLLECTION_APPLICATION),                              \
-      __VA_ARGS__ HID_REPORT_COUNT(11), /* LED NUM */      \
-      HID_REPORT_SIZE(8), HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2), \
-      HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL), HID_STRING_MINIMUM(4),           \
-      HID_STRING_MAXIMUM(16), HID_USAGE_MIN(1), HID_USAGE_MAX(16),             \
-      HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE), HID_REPORT_COUNT(1), \
-      HID_REPORT_SIZE(8), /*Padding*/                                          \
+      __VA_ARGS__ HID_REPORT_COUNT(48), HID_REPORT_SIZE(8),                    \
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                     \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                  \
+      HID_USAGE_MIN(1), HID_USAGE_MAX(48),                                     \
+      HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                      \
+      HID_REPORT_COUNT(1), HID_REPORT_SIZE(8),                                 \
       HID_INPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),                   \
       HID_COLLECTION_END
 
-// NKRO Descriptor
-#define GAMECON_REPORT_DESC_NKRO(...)                                         \
-  HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_USAGE(HID_USAGE_PAGE_KEYBOARD), \
-      HID_COLLECTION(HID_COLLECTION_APPLICATION),                             \
-      __VA_ARGS__ HID_REPORT_SIZE(1), HID_REPORT_COUNT(8),                    \
-      HID_USAGE_PAGE(HID_USAGE_PAGE_KEYBOARD), HID_USAGE_MIN(224),            \
-      HID_USAGE_MAX(231), HID_LOGICAL_MIN(0), HID_LOGICAL_MAX(1),             \
-      HID_INPUT(HID_VARIABLE), HID_REPORT_SIZE(1), HID_REPORT_COUNT(31 * 8),  \
-      HID_LOGICAL_MIN(0), HID_LOGICAL_MAX(1),                                 \
-      HID_USAGE_PAGE(HID_USAGE_PAGE_KEYBOARD), HID_USAGE_MIN(0),              \
-      HID_USAGE_MAX(31 * 8 - 1), HID_INPUT(HID_VARIABLE), HID_COLLECTION_END
+// Slider Remaining 15 LEDs
+#define GAMECON_REPORT_DESC_LED_SLIDER_15(...)                                 \
+  HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_USAGE(0x00),                     \
+      HID_COLLECTION(HID_COLLECTION_APPLICATION),                              \
+      __VA_ARGS__ HID_REPORT_COUNT(45), HID_REPORT_SIZE(8),                    \
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                     \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                  \
+      HID_USAGE_MIN(1), HID_USAGE_MAX(45),                                     \
+      HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                      \
+      HID_REPORT_COUNT(1), HID_REPORT_SIZE(8),                                 \
+      HID_INPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),                   \
+      HID_COLLECTION_END
 
+// Tower LEDs
+#define GAMECON_REPORT_DESC_LED_TOWER_6(...)                                   \
+  HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_USAGE(0x00),                     \
+      HID_COLLECTION(HID_COLLECTION_APPLICATION),                              \
+      __VA_ARGS__ HID_REPORT_COUNT(18), HID_REPORT_SIZE(8),                    \
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                     \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                  \
+      HID_USAGE_MIN(1), HID_USAGE_MAX(18),                                     \
+      HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                      \
+      HID_REPORT_COUNT(1), HID_REPORT_SIZE(8),                                 \
+      HID_INPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),                   \
+      HID_COLLECTION_END
 
-/* Enable Konami spoof mode */
-void konami_mode();
+// LEDs Compressed
+#define GAMECON_REPORT_DESC_LED_COMPRESSED(...)                                   \
+  HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_USAGE(0x00),                     \
+      HID_COLLECTION(HID_COLLECTION_APPLICATION),                              \
+      __VA_ARGS__ HID_REPORT_COUNT(62), HID_REPORT_SIZE(8),                    \
+      HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                     \
+      HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                  \
+      HID_STRING_MINIMUM(4), HID_STRING_MAXIMUM(16),                           \
+      HID_USAGE_MIN(1), HID_USAGE_MAX(62),                                     \
+      HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                      \
+      HID_REPORT_COUNT(1), HID_REPORT_SIZE(8),                                 \
+      HID_INPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE),                   \
+      HID_COLLECTION_END
 
 #endif /* USB_DESCRIPTORS_H_ */

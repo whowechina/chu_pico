@@ -51,8 +51,8 @@ tusb_desc_device_t desc_device_joy = {
     .bDeviceProtocol = 0x00,
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor = 0x0f0d,
-    .idProduct = 0x4092,
+    .idVendor = 0xcf0d,
+    .idProduct = 0x4032,
     .bcdDevice = 0x0100,
 
     .iManufacturer = 0x01,
@@ -73,24 +73,35 @@ uint8_t const* tud_descriptor_device_cb(void) {
 
 uint8_t const desc_hid_report_joy[] = {
     GAMECON_REPORT_DESC_JOYSTICK(HID_REPORT_ID(REPORT_ID_JOYSTICK)),
-    GAMECON_REPORT_DESC_LIGHTS(HID_REPORT_ID(REPORT_ID_LIGHTS))
+};
+
+
+uint8_t const desc_hid_report_led[] = {
+    GAMECON_REPORT_DESC_LED_SLIDER_16(HID_REPORT_ID(REPORT_ID_LED_SLIDER_16)),
+    GAMECON_REPORT_DESC_LED_SLIDER_15(HID_REPORT_ID(REPORT_ID_LED_SLIDER_15)),
+    GAMECON_REPORT_DESC_LED_TOWER_6(HID_REPORT_ID(REPORT_ID_LED_TOWER_6)),
+    GAMECON_REPORT_DESC_LED_COMPRESSED(HID_REPORT_ID(REPORT_ID_LED_COMPRESSED)),
 };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
-uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf) {
-  (void)itf;
-  return desc_hid_report_joy;
+uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf)
+{
+    if (itf == 0) {
+        return desc_hid_report_joy;
+    }
+    else {
+        return desc_hid_report_led;
+    }
 }
-
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
-enum { ITF_NUM_HID, ITF_NUM_CDC, ITF_NUM_CDC_DATA, ITF_NUM_TOTAL };
+enum { ITF_NUM_HID, ITF_NUM_LED, ITF_NUM_CDC, ITF_NUM_TOTAL };
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + 1 * TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
 
 #define EPNUM_HID 0x84
 #define EPNUM_CDC_NOTIF 0x81
@@ -108,7 +119,12 @@ uint8_t const desc_configuration_joy[] = {
     TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE,
                        sizeof(desc_hid_report_joy), EPNUM_HID,
                        CFG_TUD_HID_EP_BUFSIZE, 1),
-    
+
+/*
+    TUD_HID_DESCRIPTOR(ITF_NUM_LED, 0, HID_ITF_PROTOCOL_NONE,
+                       sizeof(desc_hid_report_led), EPNUM_HID,
+                       CFG_TUD_HID_EP_BUFSIZE, 1),
+*/
     TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF,
                        8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
 
@@ -131,18 +147,7 @@ const char *string_desc_arr[] = {
     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
     "WHowe"       ,              // 1: Manufacturer
     "Chu Pico Controller",       // 2: Product
-    "654321",                    // 3: Serials, should use chip ID
-    "Button 1",
-    "Button 2",
-    "Button 3",
-    "Button 4",
-    "Button 5",
-    "Button 6",
-    "Button 7",
-    "E1",
-    "E2",
-    "E3",
-    "E4"
+    "333434",                    // 3: Serials, should use chip ID
 };
 
 static uint16_t _desc_str[64];
@@ -179,17 +184,8 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     }
   }
 
-
   // first byte is length (including header), second byte is string type
   _desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * chr_count + 2);
 
   return _desc_str;
-}
-
-void konami_mode()
-{
-    desc_device_joy.idVendor = 0x1ccf;
-    desc_device_joy.idProduct = 0x8048;
-    string_desc_arr[1] = "Konami Amusement";
-    string_desc_arr[2] = "beatmania IIDX controller premium model";
 }
