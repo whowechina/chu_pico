@@ -99,11 +99,12 @@ uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf)
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
-enum { ITF_NUM_HID, ITF_NUM_LED, ITF_NUM_CDC, ITF_NUM_TOTAL };
+enum { ITF_NUM_HID, ITF_NUM_LED, ITF_NUM_CDC, ITF_NUM_CDC_DATA, ITF_NUM_TOTAL };
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + 1 * TUD_HID_DESC_LEN + TUD_CDC_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN * 2 + TUD_CDC_DESC_LEN)
 
 #define EPNUM_HID 0x84
+#define EPNUM_LED 0x85
 #define EPNUM_CDC_NOTIF 0x81
 #define EPNUM_CDC_OUT   0x02
 #define EPNUM_CDC_IN    0x82
@@ -116,16 +117,16 @@ uint8_t const desc_configuration_joy[] = {
 
     // Interface number, string index, protocol, report descriptor len, EP In
     // address, size & polling interval
-    TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE,
+    TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE,
                        sizeof(desc_hid_report_joy), EPNUM_HID,
                        CFG_TUD_HID_EP_BUFSIZE, 1),
 
-/*
-    TUD_HID_DESCRIPTOR(ITF_NUM_LED, 0, HID_ITF_PROTOCOL_NONE,
-                       sizeof(desc_hid_report_led), EPNUM_HID,
+
+    TUD_HID_DESCRIPTOR(ITF_NUM_LED, 5, HID_ITF_PROTOCOL_NONE,
+                       sizeof(desc_hid_report_led), EPNUM_LED,
                        CFG_TUD_HID_EP_BUFSIZE, 1),
-*/
-    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF,
+
+    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 6, EPNUM_CDC_NOTIF,
                        8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
 
     };
@@ -148,6 +149,9 @@ const char *string_desc_arr[] = {
     "WHowe"       ,              // 1: Manufacturer
     "Chu Pico Controller",       // 2: Product
     "333434",                    // 3: Serials, should use chip ID
+    "Joystick Interface",
+    "LED Interface",
+    "Serial Port",
 };
 
 static uint16_t _desc_str[64];
