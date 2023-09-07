@@ -51,8 +51,11 @@ tusb_desc_device_t desc_device_joy = {
     .bDeviceProtocol = 0x00,
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor = 0xcf0d,
-    .idProduct = 0x4032,
+// To match CrazyRedMachine dll
+// vid 0x0f0d, pid 0x0092, interface 1
+
+    .idVendor = 0x0f0d,
+    .idProduct = 0x0092,
     .bcdDevice = 0x0100,
 
     .iManufacturer = 0x01,
@@ -91,9 +94,10 @@ uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf)
     if (itf == 0) {
         return desc_hid_report_joy;
     }
-    else {
+    else if (itf == 1) {
         return desc_hid_report_led;
     }
+    return NULL;
 }
 //--------------------------------------------------------------------+
 // Configuration Descriptor
@@ -148,7 +152,7 @@ const char *string_desc_arr[] = {
     (const char[]){0x09, 0x04},  // 0: is supported language is English (0x0409)
     "WHowe"       ,              // 1: Manufacturer
     "Chu Pico Controller",       // 2: Product
-    "333434",                    // 3: Serials, should use chip ID
+    "123456",                    // 3: Serials, should use chip ID
     "Joystick Interface",
     "LED Interface",
     "Serial Port",

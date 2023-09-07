@@ -102,12 +102,10 @@ void slider_update_baseline()
 
     if (iteration > 100) {
         iteration = 0;
-        printf("B: ");
         for (int i = 0; i < 32; i++) {
             if (error[i] > 100) {
                 baseline[i] ++;
                 printf("+");
-
             } else if (error[i] < -100) {
                 baseline[i] --;
                 printf("-");

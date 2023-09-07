@@ -174,6 +174,8 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
             printf("Slider 15: %d\n", bufsize);
         } else if (report_id == REPORT_ID_LED_TOWER_6) {
             printf("Tower 6: %d\n", bufsize);
+        } else {
+            printf("Report: %d - %d\n", report_id, bufsize);
         }
     }
 }
