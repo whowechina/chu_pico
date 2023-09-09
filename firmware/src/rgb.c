@@ -22,7 +22,7 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
-static uint32_t rgb_buf[48]; // 32 + 16(maximum) ToF indicators
+static uint32_t rgb_buf[47]; // 16(Keys) + 15(Gaps) + 16(maximum ToF indicators)
 
 #define _MAP_LED(x) _MAKE_MAPPER(x)
 #define _MAKE_MAPPER(x) MAP_LED_##x
@@ -61,7 +61,10 @@ static void drive_led()
     }
     last = now;
 
-    for (int i = 0; i < ARRAY_SIZE(rgb_buf); i++) {
+    for (int i = 30; i >= 0; i--) {
+        pio_sm_put_blocking(pio0, 0, rgb_buf[i] << 8u);
+    }
+    for (int i = 31; i < ARRAY_SIZE(rgb_buf); i++) {
         pio_sm_put_blocking(pio0, 0, rgb_buf[i] << 8u);
     }
 }
@@ -99,6 +102,22 @@ void rgb_gap_color(unsigned index, uint32_t color)
         return;
     }
     rgb_buf[index * 2 + 1] = color;
+}
+
+void rgb_set_brg(unsigned index, const uint8_t *brg_array, size_t num)
+{
+    if (index >= ARRAY_SIZE(rgb_buf)) {
+        return;
+    }
+    if (index + num > ARRAY_SIZE(rgb_buf)) {
+        num = ARRAY_SIZE(rgb_buf) - index;
+    }
+    for (int i = 0; i < num; i++) {
+        uint8_t b = brg_array[i * 3 + 0];
+        uint8_t r = brg_array[i * 3 + 1];
+        uint8_t g = brg_array[i * 3 + 2];
+        rgb_buf[index + i] = rgb32(r, g, b, false);
+    }
 }
 
 

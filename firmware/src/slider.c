@@ -90,7 +90,6 @@ void slider_update()
 void slider_update_baseline()
 {
     static int iteration = 0;
-    iteration++;
 
     for (int i = 0; i < 32; i++) {
         int16_t delta = readout[i] - baseline[i];
@@ -100,21 +99,18 @@ void slider_update_baseline()
         error[i] += delta;
     }
 
+    iteration++;
     if (iteration > 100) {
         iteration = 0;
         for (int i = 0; i < 32; i++) {
             if (error[i] > 100) {
                 baseline[i] ++;
-                printf("+");
             } else if (error[i] < -100) {
                 baseline[i] --;
-                printf("-");
             } else {
-                printf(" ");
             }
             error[i] = 0;
         }
-        printf("\n");
     }
 }
 

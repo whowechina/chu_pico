@@ -21,6 +21,10 @@
 static const uint8_t TOF_LIST[] = TOF_MUX_LIST;
 static uint16_t distances[sizeof(TOF_LIST)];
 
+const int offset_a = 800;
+const int offset_b = 1000;
+const int pitch = 200;
+
 void air_init()
 {
     i2c_init(TOF_I2C, 400 * 1000);
@@ -46,14 +50,45 @@ size_t air_num()
     return sizeof(TOF_LIST);
 }
 
-uint16_t air_value(uint8_t index)
+static inline uint8_t air_bits(int dist, int offset)
+{
+    if (dist < offset) {
+        return 0;
+    }
+    int index = (dist - offset) / pitch;
+    if (index >= 6) {
+        return 0;
+    }
+
+    return 1 << index;
+}
+
+uint8_t air_bitmap()
+{
+    uint8_t bitmap = 0;
+    for (int i = 0; i < sizeof(TOF_LIST); i++) {
+        bitmap |= air_bits(distances[i], offset_a);
+        bitmap |= air_bits(distances[i], offset_b);
+    }
+    return bitmap;
+}
+
+unsigned air_value(uint8_t index)
 {
     if (index >= sizeof(TOF_LIST)) {
         return 0;
     }
-    uint16_t dist = distances[index] >> 6;
 
-    return dist < 63 ? dist : 0;
+    uint8_t bitmap = air_bits(distances[index], offset_a) |
+                     air_bits(distances[index], offset_b);
+
+    for (int i = 0; i < 6; i++) {
+        if (bitmap & (1 << i)) {
+            return i + 1;
+        }
+    }
+
+    return 0;
 }
 
 void air_update()

@@ -36,8 +36,8 @@
  */
 #define _PID_MAP(itf, n) ((CFG_TUD_##itf) << (n))
 #define USB_PID                                                      \
-  (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
-   _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4))
+    (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | \
+     _PID_MAP(MIDI, 3) | _PID_MAP(VENDOR, 4))
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -67,7 +67,7 @@ tusb_desc_device_t desc_device_joy = {
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
 uint8_t const* tud_descriptor_device_cb(void) {
-  return (uint8_t const*)&desc_device_joy;
+    return (uint8_t const*)&desc_device_joy;
 }
 
 //--------------------------------------------------------------------+
@@ -75,15 +75,17 @@ uint8_t const* tud_descriptor_device_cb(void) {
 //--------------------------------------------------------------------+
 
 uint8_t const desc_hid_report_joy[] = {
-    GAMECON_REPORT_DESC_JOYSTICK(HID_REPORT_ID(REPORT_ID_JOYSTICK)),
+    GAMECON_REPORT_DESC_JOYSTICK,
 };
 
 
 uint8_t const desc_hid_report_led[] = {
-    GAMECON_REPORT_DESC_LED_SLIDER_16(HID_REPORT_ID(REPORT_ID_LED_SLIDER_16)),
-    GAMECON_REPORT_DESC_LED_SLIDER_15(HID_REPORT_ID(REPORT_ID_LED_SLIDER_15)),
-    GAMECON_REPORT_DESC_LED_TOWER_6(HID_REPORT_ID(REPORT_ID_LED_TOWER_6)),
-    GAMECON_REPORT_DESC_LED_COMPRESSED(HID_REPORT_ID(REPORT_ID_LED_COMPRESSED)),
+    GAMECON_LED_HEADER,
+    GAMECON_REPORT_DESC_LED_SLIDER_16,
+    GAMECON_REPORT_DESC_LED_SLIDER_15,
+    GAMECON_REPORT_DESC_LED_TOWER_6,
+    GAMECON_REPORT_DESC_LED_COMPRESSED,
+    GAMECON_LED_FOOTER
 };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
@@ -128,19 +130,18 @@ uint8_t const desc_configuration_joy[] = {
 
     TUD_HID_DESCRIPTOR(ITF_NUM_LED, 5, HID_ITF_PROTOCOL_NONE,
                        sizeof(desc_hid_report_led), EPNUM_LED,
-                       CFG_TUD_HID_EP_BUFSIZE, 1),
+                       CFG_TUD_HID_EP_BUFSIZE, 4),
 
     TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 6, EPNUM_CDC_NOTIF,
                        8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
 
-    };
+};
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
 // Application return pointer to descriptor
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
-  (void)index;  // for multiple configurations
-  return desc_configuration_joy;
+    return desc_configuration_joy;
 }
 
 //--------------------------------------------------------------------+
@@ -153,47 +154,58 @@ const char *string_desc_arr[] = {
     "WHowe"       ,              // 1: Manufacturer
     "Chu Pico Controller",       // 2: Product
     "123456",                    // 3: Serials, should use chip ID
-    "Joystick Interface",
-    "LED Interface",
-    "Serial Port",
+    "Chu Pico Joystick",
+    "Chu Pico LED",
+    "Chu Pico Serial Port",
 };
-
-static uint16_t _desc_str[64];
 
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long
 // enough for transfer to complete
-uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
-  (void)langid;
+uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
+{
+    static uint16_t _desc_str[64];
 
-  uint8_t chr_count;
-
-  if (index == 0) {
-    memcpy(&_desc_str[1], string_desc_arr[0], 2);
-    chr_count = 1;
-  } else {
-    // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
-    // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
-
-    if (index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0])) {
-      const char* str = string_desc_arr[index];
-
-      // Cap at max char
-      chr_count = strlen(str);
-      if (chr_count > 63) chr_count = 63;
-
-      // Convert ASCII string into UTF-16
-      for (uint8_t i = 0; i < chr_count; i++) {
-        _desc_str[1 + i] = str[i];
-      }
-    } else {
-      _desc_str[1] = 'X';
-      chr_count = 1;
+    if (index == 0) {
+        memcpy(&_desc_str[1], string_desc_arr[0], 2);
+        _desc_str[0] = (TUSB_DESC_STRING << 8) | (2 + 2);
+        return _desc_str;
     }
-  }
+    
+    const size_t base_num = sizeof(string_desc_arr) / sizeof(string_desc_arr[0]);
+    const char *colors[] = {"Blue", "Red", "Green"};
+    char str[64];
 
-  // first byte is length (including header), second byte is string type
-  _desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * chr_count + 2);
+    if (index < base_num) {
+        strcpy(str, string_desc_arr[index]);
+    } else if (index < base_num + 48 + 45) {
+        const char *names[] = {"Key ", "Splitter "};
+        int led = index - base_num;
+        int id = led / 6 + 1;
+        int type = led / 3 % 2;
+        int brg = led % 3;
+        sprintf(str, "%s%02d %s", names[type], id, colors[brg]);
+    } else if (index < base_num + 48 + 45 + 18) {
+        int led = index - base_num - 48 - 45;
+        int id = led / 3 + 1;
+        int brg = led % 3;
+        sprintf(str, "Tower %02d %s", id, colors[brg]);
+    } else {
+        sprintf(str, "Unknown %d", index);
+    }
 
-  return _desc_str;
+    uint8_t chr_count = strlen(str);
+    if (chr_count > 63) {
+        chr_count = 63;
+    }
+
+    // Convert ASCII string into UTF-16
+    for (uint8_t i = 0; i < chr_count; i++) {
+        _desc_str[1 + i] = str[i];
+    }
+
+    // first byte is length (including header), second byte is string type
+    _desc_str[0] = (TUSB_DESC_STRING << 8) | (2 * chr_count + 2);
+
+    return _desc_str;
 }
