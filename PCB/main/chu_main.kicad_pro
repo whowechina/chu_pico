@@ -380,7 +380,7 @@
       "idf": "",
       "netlist": "",
       "specctra_dsn": "",
-      "step": "chu_pico_v0.1.step",
+      "step": "chu_pico_v1.step",
       "vrml": "iidx_pico.wrl"
     },
     "page_layout_descr_file": ""
