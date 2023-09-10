@@ -120,7 +120,8 @@ From top to bottom:
 
 You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 
-5x silicone anti-slip pads can be applied to the bottom side of the base.
+7x silicone anti-slip pads can be applied to the bottom side of the base to provide stability when playing.  
+<img src="doc/silicone_pad.png" width="50%">
 
 ### Firmware
 * UF2 file is in `Production\Firmware` folder.
