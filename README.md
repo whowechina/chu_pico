@@ -75,13 +75,15 @@ It's CC-NC. So diy for yourself and for your friend, don't make money from it.
 * A **textured** PP polypropylene film sheet, used as the light guide panel cover. It improves touch feel, 0.5mm thichness feels the best. If you can't find one, go get a project folder with textured cover.    
   <img src="doc/pp_1.png" width="50%">  
   <img src="doc/pp_2.png" width="80%">
-* Cut the PP sheet to roughly match the shape of the light guide panel, use double-sided tape (at the edge only) to stick it on the light guide panel.  
-  <img src="doc/pp_3.png" width="80%">
+* Cut the PP sheet to roughly match the shape of the light guide panel, use double-sided tape (at the edge only) to stick it on the light guide panel.
 
 ###  IR Cover
-* It's for good looking, as it hides 5 ToF sensors. But it can't block the IR lights.
-* Find a service to cut an IR cover using the DXF or DWG file `Production\CAD\chu_pico_ir_cover.*`, the size is 293.2mm*63.5mm, 1mm thickness. The material must be "Infrared Transmitting Acrylic Sheet" which can block visible lights (it looks black) while letting IR lights go through.  
-  <img src="doc/ir_cover_1.png" width="80%">
+* It's for good looking, as it hides 5 ToF sensors.   
+  <img src="doc/ir_cover_1.png" width="60%">
+* IR lights can go through.  
+  <img src="doc/ir_cover_2.png" width="60%">
+* Find a service to cut an IR cover using the DXF or DWG file `Production\CAD\chu_pico_ir_cover.*`, the size is 293.2mm*63.5mm, 1mm thickness. The material must be "Infrared Transmitting Acrylic Sheet" which can block visible lights (so it looks black) while letting IR lights go through.  
+  <img src="doc/ir_cover_3.png" width="80%">
 * If you can't find one, cut a regular smooth surface acrylic, but it can't hide the ToF sensors which are not good looking.
 
 ### 3D Printing
@@ -91,13 +93,10 @@ It's CC-NC. So diy for yourself and for your friend, don't make money from it.
 * For all the following prints:
   * To fit object in the bed, Z rotate: 315 degree, X, Y move to: 134mm  
   <img src="doc/rotate.png" width="50%"><img src="doc/moveto.png" width="32%">  
-  <img src="doc/layout.png" width="85%">
-
+  <img src="doc/layout.png" width="80%">
   * PLA, PETG, ABS are all OK.
   * Layer height: 0.2mm
-  * 4-6 walls
-  * Z-Rotate 315 degree
-  * X, Y location: 134mm
+  * 4-6 walls, 50+% infill
   * Support: Yes. If you have Bambu AMS system, use their special support material at interface layers.
 
 * Base: `Production\3D\chu_pico_base.stl`, dark gray filament.
@@ -106,7 +105,7 @@ It's CC-NC. So diy for yourself and for your friend, don't make money from it.
 * Light Guide Panel Fixer: `Production\3D\chu_pico_lgp_fixer.stl`, color doesn't matter.
 
 ### Exploded View for Assembly
-<img src="doc/assemble.png">
+<img src="doc/assemble.png" width="80%">
 
 From top to bottom:
 * IR Cover
