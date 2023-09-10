@@ -75,17 +75,20 @@ uint8_t const* tud_descriptor_device_cb(void) {
 //--------------------------------------------------------------------+
 
 uint8_t const desc_hid_report_joy[] = {
-    GAMECON_REPORT_DESC_JOYSTICK,
+    CHUPICO_REPORT_DESC_JOYSTICK,
 };
 
-
 uint8_t const desc_hid_report_led[] = {
-    GAMECON_LED_HEADER,
-    GAMECON_REPORT_DESC_LED_SLIDER_16,
-    GAMECON_REPORT_DESC_LED_SLIDER_15,
-    GAMECON_REPORT_DESC_LED_TOWER_6,
-    GAMECON_REPORT_DESC_LED_COMPRESSED,
-    GAMECON_LED_FOOTER
+    CHUPICO_LED_HEADER,
+    CHUPICO_REPORT_DESC_LED_SLIDER_16,
+    CHUPICO_REPORT_DESC_LED_SLIDER_15,
+    CHUPICO_REPORT_DESC_LED_TOWER_6,
+    CHUPICO_REPORT_DESC_LED_COMPRESSED,
+    CHUPICO_LED_FOOTER
+};
+
+uint8_t const desc_hid_report_nkro[] = {
+    CHUPICO_REPORT_DESC_NKRO,
 };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
@@ -93,24 +96,28 @@ uint8_t const desc_hid_report_led[] = {
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const* tud_hid_descriptor_report_cb(uint8_t itf)
 {
-    if (itf == 0) {
-        return desc_hid_report_joy;
+    switch (itf) {
+        case 0:
+            return desc_hid_report_joy;
+        case 1:
+            return desc_hid_report_led;
+        case 2:
+            return desc_hid_report_nkro;
+        default:
+            return NULL;
     }
-    else if (itf == 1) {
-        return desc_hid_report_led;
-    }
-    return NULL;
 }
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
-enum { ITF_NUM_HID, ITF_NUM_LED, ITF_NUM_CDC, ITF_NUM_CDC_DATA, ITF_NUM_TOTAL };
+enum { ITF_NUM_JOY, ITF_NUM_LED, ITF_NUM_NKRO, ITF_NUM_CDC, ITF_NUM_CDC_DATA, ITF_NUM_TOTAL };
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN * 2 + TUD_CDC_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN * 3 + TUD_CDC_DESC_LEN)
 
-#define EPNUM_HID 0x84
+#define EPNUM_JOY 0x84
 #define EPNUM_LED 0x85
+#define EPNUM_KEY 0x86
 #define EPNUM_CDC_NOTIF 0x81
 #define EPNUM_CDC_OUT   0x02
 #define EPNUM_CDC_IN    0x82
@@ -119,22 +126,24 @@ uint8_t const desc_configuration_joy[] = {
     // Config number, interface count, string index, total length, attribute,
     // power in mA
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN,
-                          TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
+                          TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 200),
 
     // Interface number, string index, protocol, report descriptor len, EP In
     // address, size & polling interval
-    TUD_HID_DESCRIPTOR(ITF_NUM_HID, 4, HID_ITF_PROTOCOL_NONE,
-                       sizeof(desc_hid_report_joy), EPNUM_HID,
+    TUD_HID_DESCRIPTOR(ITF_NUM_JOY, 4, HID_ITF_PROTOCOL_NONE,
+                       sizeof(desc_hid_report_joy), EPNUM_JOY,
                        CFG_TUD_HID_EP_BUFSIZE, 1),
-
 
     TUD_HID_DESCRIPTOR(ITF_NUM_LED, 5, HID_ITF_PROTOCOL_NONE,
                        sizeof(desc_hid_report_led), EPNUM_LED,
                        CFG_TUD_HID_EP_BUFSIZE, 4),
 
-    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 6, EPNUM_CDC_NOTIF,
-                       8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
+    TUD_HID_DESCRIPTOR(ITF_NUM_NKRO, 6, HID_ITF_PROTOCOL_NONE,
+                       sizeof(desc_hid_report_nkro), EPNUM_KEY,
+                       CFG_TUD_HID_EP_BUFSIZE, 1),
 
+    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 7, EPNUM_CDC_NOTIF,
+                       8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64)
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -156,6 +165,7 @@ const char *string_desc_arr[] = {
     "123456",                    // 3: Serials, should use chip ID
     "Chu Pico Joystick",
     "Chu Pico LED",
+    "Chu Pico NKRO",
     "Chu Pico Serial Port",
 };
 

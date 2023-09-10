@@ -202,27 +202,29 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
                            hid_report_type_t report_type, uint8_t const *buffer,
                            uint16_t bufsize)
 {
-    if (report_type == HID_REPORT_TYPE_OUTPUT) {
-        if (report_id == REPORT_ID_LED_SLIDER_16) {
-            rgb_set_brg(0, buffer, bufsize / 3);
-        } else if (report_id == REPORT_ID_LED_SLIDER_15) {
-            rgb_set_brg(16, buffer, bufsize / 3);
-        } else if (report_id == REPORT_ID_LED_TOWER_6) {
-            rgb_set_brg(31, buffer, bufsize / 3);
-        }
-        last_hid_time = time_us_64();
-        return;
-    } 
-    
-    if (report_type == HID_REPORT_TYPE_FEATURE) {
-        if (report_id == REPORT_ID_LED_COMPRESSED) {
-            uint8_t buf[(48 + 45 + 6) * 3];
-            unsigned int olen = sizeof(buf);
-            if (lzfx_decompress(buffer + 1, buffer[0], buf, &olen) == 0) {
-                rgb_set_brg(0, buf, olen / 3);
+    if (itf == 1) {
+        if (report_type == HID_REPORT_TYPE_OUTPUT) {
+            if (report_id == REPORT_ID_LED_SLIDER_16) {
+                rgb_set_brg(0, buffer, bufsize / 3);
+            } else if (report_id == REPORT_ID_LED_SLIDER_15) {
+                rgb_set_brg(16, buffer, bufsize / 3);
+            } else if (report_id == REPORT_ID_LED_TOWER_6) {
+                rgb_set_brg(31, buffer, bufsize / 3);
             }
+            last_hid_time = time_us_64();
+            return;
+        } 
+        
+        if (report_type == HID_REPORT_TYPE_FEATURE) {
+            if (report_id == REPORT_ID_LED_COMPRESSED) {
+                uint8_t buf[(48 + 45 + 6) * 3];
+                unsigned int olen = sizeof(buf);
+                if (lzfx_decompress(buffer + 1, buffer[0], buf, &olen) == 0) {
+                    rgb_set_brg(0, buf, olen / 3);
+                }
+            }
+            last_hid_time = time_us_64();
+            return;
         }
-        last_hid_time = time_us_64();
-        return;
     }
 }

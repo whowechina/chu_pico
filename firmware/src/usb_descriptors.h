@@ -6,6 +6,7 @@
 
 enum {
     REPORT_ID_JOYSTICK = 1,
+    REPORT_ID_NKRO = 2,
     REPORT_ID_LED_SLIDER_16 = 4,
     REPORT_ID_LED_SLIDER_15 = 5,
     REPORT_ID_LED_TOWER_6 = 6,
@@ -22,7 +23,7 @@ enum {
 
 // Joystick Report Descriptor Template - Based off Drewol/rp2040-gamecon
 // Button Map | X | Y
-#define GAMECON_REPORT_DESC_JOYSTICK                                           \
+#define CHUPICO_REPORT_DESC_JOYSTICK                                           \
     HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                    \
     HID_USAGE(HID_USAGE_DESKTOP_JOYSTICK),                                     \
     HID_COLLECTION(HID_COLLECTION_APPLICATION),                                \
@@ -54,57 +55,81 @@ enum {
         HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                     \
     HID_COLLECTION_END
 
-#define GAMECON_LED_HEADER \
+#define CHUPICO_LED_HEADER \
     HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP), HID_USAGE(0x00),                   \
     HID_COLLECTION(HID_COLLECTION_APPLICATION),                                \
         HID_REPORT_COUNT(1), HID_REPORT_SIZE(8),                                \
         HID_INPUT(HID_CONSTANT | HID_VARIABLE | HID_ABSOLUTE)
 
-#define GAMECON_LED_FOOTER \
+#define CHUPICO_LED_FOOTER \
     HID_COLLECTION_END
 
 // Slider First 16 LEDs (48 rgb zones, BRG order)
-#define GAMECON_REPORT_DESC_LED_SLIDER_16                                      \
+#define CHUPICO_REPORT_DESC_LED_SLIDER_16                                      \
         HID_REPORT_ID(REPORT_ID_LED_SLIDER_16)                                 \
         HID_REPORT_COUNT(48), HID_REPORT_SIZE(8),                              \
         HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                   \
         HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                \
         HID_USAGE_MIN(1), HID_USAGE_MAX(48),                                   \
-        HID_STRING_MINIMUM(7), HID_STRING_MAXIMUM(54),                         \
+        HID_STRING_MINIMUM(8), HID_STRING_MAXIMUM(55),                         \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE)
 
 // Slider Remaining 15 LEDs (45 rgb zones, BRG order)
-#define GAMECON_REPORT_DESC_LED_SLIDER_15                                      \
+#define CHUPICO_REPORT_DESC_LED_SLIDER_15                                      \
         HID_REPORT_ID(REPORT_ID_LED_SLIDER_15)                                 \
         HID_REPORT_COUNT(45), HID_REPORT_SIZE(8),                              \
         HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                   \
         HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                \
         HID_USAGE_MIN(49), HID_USAGE_MAX(93),                                  \
-        HID_STRING_MINIMUM(7), HID_STRING_MAXIMUM(51), /* Delta to previous */ \
+        HID_STRING_MINIMUM(8), HID_STRING_MAXIMUM(52), /* Delta to previous */ \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE)
 
 // Tower LEDs (18 rgb zones, BRG order)
-#define GAMECON_REPORT_DESC_LED_TOWER_6                                        \
+#define CHUPICO_REPORT_DESC_LED_TOWER_6                                        \
         HID_REPORT_ID(REPORT_ID_LED_TOWER_6)                                   \
         HID_REPORT_COUNT(18), HID_REPORT_SIZE(8),                              \
         HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                   \
         HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                \
         HID_USAGE_MIN(94), HID_USAGE_MAX(111),                                 \
-        HID_STRING_MINIMUM(7), HID_STRING_MAXIMUM(24), /* Delta to previous */ \
+        HID_STRING_MINIMUM(8), HID_STRING_MAXIMUM(25), /* Delta to previous */ \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE)
 
-/*
-        HID_STRING_MINIMUM(56), HID_STRING_MAXIMUM(100),                       \
-        HID_STRING_MINIMUM(101), HID_STRING_MAXIMUM(117),                      \
-*/
-
 // LEDs Compressed
-#define GAMECON_REPORT_DESC_LED_COMPRESSED                                     \
+#define CHUPICO_REPORT_DESC_LED_COMPRESSED                                     \
         HID_REPORT_ID(REPORT_ID_LED_COMPRESSED)                                \
         HID_USAGE_PAGE(HID_USAGE_PAGE_ORDINAL),                                \
         HID_USAGE(0x00),                                                      \
         HID_LOGICAL_MIN(0x00), HID_LOGICAL_MAX_N(0x00ff, 2),                   \
         HID_REPORT_SIZE(8), HID_REPORT_COUNT(63),                              \
         HID_FEATURE(HID_DATA | HID_VARIABLE | HID_ABSOLUTE)
+
+#define CHUPICO_REPORT_DESC_NKRO                                               \
+    HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                    \
+    HID_USAGE(HID_USAGE_DESKTOP_KEYBOARD),                                     \
+    HID_COLLECTION(HID_COLLECTION_APPLICATION),                                \
+        /* Padding for Boot Protocol */                                        \
+        HID_REPORT_COUNT(8),                                                   \
+        HID_REPORT_SIZE(8),                                                    \
+        HID_INPUT(HID_CONSTANT),                                               \
+        /* Full Keyboard Bitmap */                                             \
+        HID_USAGE_PAGE(HID_USAGE_PAGE_KEYBOARD),                               \
+        HID_USAGE_MIN(0),                                                      \
+        HID_USAGE_MAX_N(255, 2),                                               \
+        HID_LOGICAL_MIN(0),                                                    \
+        HID_LOGICAL_MAX(1),                                                    \
+        HID_REPORT_SIZE(1),                                                    \
+        HID_REPORT_COUNT_N(256, 2),                                            \
+        HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                     \
+        /* Output that we don't care */                                        \
+        HID_USAGE_PAGE(HID_USAGE_PAGE_LED),                                    \
+        HID_USAGE_MIN(1),                                                      \
+        HID_USAGE_MAX(5),                                                      \
+        HID_REPORT_COUNT(5),                                                   \
+        HID_REPORT_SIZE(1),                                                    \
+        HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                    \
+        HID_REPORT_COUNT(1),                                                   \
+        HID_REPORT_SIZE(3),                                                    \
+        HID_OUTPUT(HID_CONSTANT),                                              \
+    HID_COLLECTION_END
 
 #endif /* USB_DESCRIPTORS_H_ */
