@@ -38,12 +38,21 @@ struct __attribute__((packed)) {
     uint8_t  VendorSpec;
 } hid_joy;
 
+struct __attribute__((packed)) {
+    uint8_t modifier;
+    uint8_t keymap[15];
+} hid_nkro, sent_hid_nkro;
+
 void report_usb_hid()
 {
     if (tud_hid_ready()) {
         hid_joy.HAT = 0;
         hid_joy.VendorSpec = 0;
         tud_hid_n_report(0x00, REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy));
+        if (memcmp(&hid_nkro, &sent_hid_nkro, sizeof(hid_nkro)) != 0) {
+            sent_hid_nkro = hid_nkro;
+            tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro));
+        }
     }
 }
 
@@ -91,7 +100,7 @@ static void print_fps()
     printf("FPS: %d %d\n", get_fps(0), get_fps(1));
 }
 
-static void gen_hid_report()
+static void gen_joy_report()
 {
     hid_joy.axis = 0;
     for (int i = 0; i < 16; i++) {
@@ -105,6 +114,24 @@ static void gen_hid_report()
     }
     hid_joy.axis ^= 0x80808080; // some magic number from CrazyRedMachine
     hid_joy.buttons = air_bitmap();
+}
+
+const uint8_t keycode_table[128][2] = { HID_ASCII_TO_KEYCODE };
+
+const char keymap[33] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456";
+static void gen_nkro_report()
+{
+    return;
+    for (int i = 0; i < 32; i++) {
+        uint8_t code = keymap[i] - 32;
+        uint8_t byte = code / 8;
+        uint8_t bit = code % 8;
+        if (slider_touched(i)) {
+            hid_nkro.keymap[byte] &= ~(1 << bit);
+        } else {
+            hid_nkro.keymap[byte] |= 1 << bit;
+        }
+    }
 }
 
 static uint64_t last_hid_time = 0;
@@ -154,7 +181,8 @@ static void core0_loop()
         slider_update();
         air_update();
 
-        gen_hid_report();
+        gen_joy_report();
+        gen_nkro_report();
         report_usb_hid();
 
         run_lights();
@@ -202,29 +230,27 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
                            hid_report_type_t report_type, uint8_t const *buffer,
                            uint16_t bufsize)
 {
-    if (itf == 1) {
-        if (report_type == HID_REPORT_TYPE_OUTPUT) {
-            if (report_id == REPORT_ID_LED_SLIDER_16) {
-                rgb_set_brg(0, buffer, bufsize / 3);
-            } else if (report_id == REPORT_ID_LED_SLIDER_15) {
-                rgb_set_brg(16, buffer, bufsize / 3);
-            } else if (report_id == REPORT_ID_LED_TOWER_6) {
-                rgb_set_brg(31, buffer, bufsize / 3);
-            }
-            last_hid_time = time_us_64();
-            return;
-        } 
-        
-        if (report_type == HID_REPORT_TYPE_FEATURE) {
-            if (report_id == REPORT_ID_LED_COMPRESSED) {
-                uint8_t buf[(48 + 45 + 6) * 3];
-                unsigned int olen = sizeof(buf);
-                if (lzfx_decompress(buffer + 1, buffer[0], buf, &olen) == 0) {
-                    rgb_set_brg(0, buf, olen / 3);
-                }
-            }
-            last_hid_time = time_us_64();
-            return;
+    if (report_type == HID_REPORT_TYPE_OUTPUT) {
+        if (report_id == REPORT_ID_LED_SLIDER_16) {
+            rgb_set_brg(0, buffer, bufsize / 3);
+        } else if (report_id == REPORT_ID_LED_SLIDER_15) {
+            rgb_set_brg(16, buffer, bufsize / 3);
+        } else if (report_id == REPORT_ID_LED_TOWER_6) {
+            rgb_set_brg(31, buffer, bufsize / 3);
         }
+        last_hid_time = time_us_64();
+        return;
+    } 
+    
+    if (report_type == HID_REPORT_TYPE_FEATURE) {
+        if (report_id == REPORT_ID_LED_COMPRESSED) {
+            uint8_t buf[(48 + 45 + 6) * 3];
+            unsigned int olen = sizeof(buf);
+            if (lzfx_decompress(buffer + 1, buffer[0], buf, &olen) == 0) {
+                rgb_set_brg(0, buf, olen / 3);
+            }
+        }
+        last_hid_time = time_us_64();
+        return;
     }
 }

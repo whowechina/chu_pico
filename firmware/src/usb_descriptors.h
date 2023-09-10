@@ -6,7 +6,6 @@
 
 enum {
     REPORT_ID_JOYSTICK = 1,
-    REPORT_ID_NKRO = 2,
     REPORT_ID_LED_SLIDER_16 = 4,
     REPORT_ID_LED_SLIDER_15 = 5,
     REPORT_ID_LED_TOWER_6 = 6,
@@ -107,29 +106,36 @@ enum {
     HID_USAGE_PAGE(HID_USAGE_PAGE_DESKTOP),                                    \
     HID_USAGE(HID_USAGE_DESKTOP_KEYBOARD),                                     \
     HID_COLLECTION(HID_COLLECTION_APPLICATION),                                \
-        /* Padding for Boot Protocol */                                        \
+        /* Modifier */                                                         \
+        HID_REPORT_SIZE(1),                                                    \
         HID_REPORT_COUNT(8),                                                   \
-        HID_REPORT_SIZE(8),                                                    \
-        HID_INPUT(HID_CONSTANT),                                               \
-        /* Full Keyboard Bitmap */                                             \
         HID_USAGE_PAGE(HID_USAGE_PAGE_KEYBOARD),                               \
-        HID_USAGE_MIN(0),                                                      \
-        HID_USAGE_MAX_N(255, 2),                                               \
+        HID_USAGE_MIN(224),                                                    \
+        HID_USAGE_MAX(231),                                                    \
         HID_LOGICAL_MIN(0),                                                    \
         HID_LOGICAL_MAX(1),                                                    \
-        HID_REPORT_SIZE(1),                                                    \
-        HID_REPORT_COUNT_N(256, 2),                                            \
         HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                     \
-        /* Output that we don't care */                                        \
+        /* LED output that we don't care */                                    \
+        HID_REPORT_COUNT(5),                                                   \
+        HID_REPORT_SIZE(1),                                                    \
         HID_USAGE_PAGE(HID_USAGE_PAGE_LED),                                    \
         HID_USAGE_MIN(1),                                                      \
         HID_USAGE_MAX(5),                                                      \
-        HID_REPORT_COUNT(5),                                                   \
-        HID_REPORT_SIZE(1),                                                    \
         HID_OUTPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                    \
         HID_REPORT_COUNT(1),                                                   \
         HID_REPORT_SIZE(3),                                                    \
         HID_OUTPUT(HID_CONSTANT),                                              \
+        /* Full Keyboard Bitmap */                                             \
+        HID_REPORT_SIZE(1),                                                    \
+        HID_REPORT_COUNT(120),                                                 \
+        HID_LOGICAL_MIN(0),                                                    \
+        HID_LOGICAL_MAX(1),                                                    \
+        HID_USAGE_PAGE(HID_USAGE_PAGE_KEYBOARD),                               \
+        HID_USAGE_MIN(0),                                                      \
+        HID_USAGE_MAX(119),                                                    \
+        HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                     \
     HID_COLLECTION_END
+
+//        HID_REPORT_ID(REPORT_ID_NKRO) 
 
 #endif /* USB_DESCRIPTORS_H_ */
