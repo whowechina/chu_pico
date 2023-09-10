@@ -89,11 +89,12 @@ It's CC-NC. So diy for yourself and for your friend, don't make money from it.
 ### 3D Printing
 * You need a Bambu 3D printer for 2 reasons:
   * Parts are designed to perfectly fit in its 256mm*256mm print bed.
-  * It's AMS system works great for easy-to-remove support material.
+  * Its AMS system works great for easy-to-remove support material.
 * For all the following prints:
   * To fit object in the bed, Z rotate: 315 degree, X, Y move to: 134mm  
   <img src="doc/rotate.png" width="50%"><img src="doc/moveto.png" width="32%">  
   <img src="doc/layout.png" width="80%">
+  
   * PLA, PETG, ABS are all OK.
   * Layer height: 0.2mm
   * 4-6 walls, 50+% infill
