@@ -7,7 +7,7 @@ Features:
 * Air towers are replaced with built-in ToF sensors.
 * HID lights, of course!
 * 32 keys (upper and lower rows).
-* Works with CrazyRedMachine's RedBoard.
+* Follows CrazyRedMachine's RedBoard I/O protocol.
 * All source files open.
 
 Thanks to many respectful guys/companies who made their tools or materials free or open source (KiCad, OnShape, InkScape, Raspberry things).
@@ -26,10 +26,10 @@ This Chu Pico project:
 * Requires skills to solder tiny components.
 
 ## **Disclaimer** ##
-I made this project in my personal time with no financial benefit or sponsorship. There will continue to all components and firmware to improve the project. I have done my best to ensure that everything is accurate and functional, there's always a chance that mistakes may occur. I cannot be held responsible for any loss of your time or money that may result from using this open source project. Thank you for your understanding.
+I made this project in my personal time with no financial benefit or sponsorship. I will continue to improve the project. I have done my best to ensure that everything is accurate and functional, there's always a chance that mistakes may occur. I cannot be held responsible for any loss of your time or money that may result from using this open source project. Thank you for your understanding.
 
 ## About the License
-It's CC-NC. So diy for yourself and for your friend, don't make money from it.
+It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 
 ## HOW TO BUILD
 ### PCB
@@ -129,5 +129,5 @@ You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 https://github.com/CrazyRedMachine/RedBoard
 
 ## CAD Source File
-I'm using OnShape, it's free and powerful. But it can't export original designs to local, so I can only share the link here.
+I'm using OnShape free subscription. It's powerful but it can't archive original designs to local, so I can only share the link here. STL/DXF/DWG files are exported from this online document.  
 https://cad.onshape.com/documents/8b9d0fe6ff1bfa4da17d33ee/w/5c7c980a282a19e7ba1db795/e/56ee65492584a3f709c23c49?renderMode=1&uiState=64fd606f17393c0e6f9b19a4
