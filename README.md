@@ -46,7 +46,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
   https://www.lcsc.com/product-detail/Signal-Switches-Encoders-Decoders-Multiplexers_Texas-Instruments-TCA9548APWR_C130026.html
 * 3x MPR121 modules, there're many types in the market, choose ones like this, and remember to **cut (unshort) the ADDR pin** which is short by default:  
   https://www.sparkfun.com/products/retired/9695
-* 5x Toshiba GP2Y0E03 ToF sensors, buy ones that equipped with cables.  
+* 5x Sharp GP2Y0E03 ToF sensors, buy ones that equipped with cables.  
   https://www.lcsc.com/product-detail/Angle-Linear-Position-Sensors_Sharp-Microelectronics-GP2Y0E03_C920270.html
   <img src="doc/gp2y0e03_solder.jpg" width="90%">
 * 2x 0603 5.1kohm resistors (R1, R2) for USB.
