@@ -22,7 +22,7 @@ static inline void i2c_hub_init()
 static inline void i2c_select(i2c_inst_t *i2c_port, uint8_t chn)
 {
     sleep_us(10);
-    i2c_write_blocking(i2c_port, I2C_HUB_ADDR, &chn, 1, false);
+    i2c_write_blocking_until(i2c_port, I2C_HUB_ADDR, &chn, 1, false, time_us_64() + 1000);
     sleep_us(10);
 }
 
