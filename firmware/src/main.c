@@ -21,6 +21,7 @@
 #include "tusb.h"
 #include "usb_descriptors.h"
 
+#include "board_defs.h"
 #include "slider.h"
 #include "air.h"
 #include "rgb.h"
@@ -117,15 +118,24 @@ static void gen_joy_report()
 }
 
 const uint8_t keycode_table[128][2] = { HID_ASCII_TO_KEYCODE };
-
-const char keymap[33] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456";
+const char keymap[38 + 1] = NKRO_KEYMAP; // 32 keys, 6 air keys, 1 terminator
 static void gen_nkro_report()
 {
     for (int i = 0; i < 32; i++) {
-        uint8_t code = keycode_table[i + 'A'][1];
+        uint8_t code = keycode_table[keymap[i]][1];
         uint8_t byte = code / 8;
         uint8_t bit = code % 8;
         if (slider_touched(i)) {
+            hid_nkro.keymap[byte] |= (1 << bit);
+        } else {
+            hid_nkro.keymap[byte] &= ~(1 << bit);
+        }
+    }
+    for (int i = 0; i < 6; i++) {
+        uint8_t code = keycode_table[keymap[32 + i]][1];
+        uint8_t byte = code / 8;
+        uint8_t bit = code % 8;
+        if (hid_joy.buttons & (1 << i)) {
             hid_nkro.keymap[byte] |= (1 << bit);
         } else {
             hid_nkro.keymap[byte] &= ~(1 << bit);
