@@ -59,7 +59,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 * 10x 0603 10kohm resistors (R4 to R13) for I2C pull-up, OPTIONAL, normally not needed.
 
 ### Light Guide Panel
-* Find a service to cut a light guide panel using DXF or DWG file `Production\CAD\chu_pico_lgp.*`, the size is 256mm*60mm, 1.5mm to 2.0mm thickness, thinner is better for sensitivity. 2.0mm is easy to find, 1.8mm is difficult, and 1.5mm is rare. I used 1.8mm for my build. 
+* Find a service to cut a light guide panel using DXF or DWG file `Production\CAD\chu_pico_lgp.*`, the size is 256mm*60mm, 1.4mm to 2.0mm thickness, thinner is better for sensitivity. 2.0mm is easy to find, 1.8mm is difficult, and 1.4 or 1.5mm is rare. I used 1.8mm for my build. I strongly suggest you try your very best to find thinner ones for best sensitivity.  
   <img src="doc/lgp_1.png" width="90%">
 * LGP material choices:
   * Real LGP (Light Guide Panel) material, it's the best choice.  
