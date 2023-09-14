@@ -25,7 +25,7 @@ function(make_firmware board board_def)
     pico_add_extra_outputs(${board})
 
     add_custom_command(TARGET ${board} POST_BUILD
-                       COMMAND cp ${board}.uf2 /mnt/d/Code/iidx_pico/firmware/build)
+                       COMMAND cp ${board}.uf2 ${CMAKE_CURRENT_LIST_DIR}/..)
 endfunction()
 
 make_firmware(chu_pico BOARD_CHU_PICO)
