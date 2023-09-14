@@ -20,6 +20,7 @@
 #define RGB_PIN 2
 #define RGB_ORDER GRB // or RGB
 
+#define NKRO_KEYMAP "1aqz2swx3dec4frv5gtb6hyn7jum8ki90olp,."
 #else
 
 #endif
