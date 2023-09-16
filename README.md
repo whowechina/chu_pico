@@ -55,8 +55,8 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 
   <img src="doc/pcb_1.png" width="90%">
 
-* 8x 0603 1uF capacitors (C1 to C8), OPTIONAL, recommended.
-* 10x 0603 10kohm resistors (R4 to R13) for I2C pull-up, OPTIONAL, normally not needed.
+* 8x 0603 1uF (0.1~1uF all fine) capacitors (C1 to C8), OPTIONAL, recommended.
+* 10x 0603 5.1kohm (1~10kohm all fine) resistors (R4 to R13) for I2C pull-up, required for overclock I2C.
 
 ### Light Guide Panel
 * Find a service to cut a light guide panel using DXF or DWG file `Production\CAD\chu_pico_lgp.*`, the size is 256mm*60mm, 1.4mm to 2.0mm thickness, thinner is better for sensitivity. 2.0mm is easy to find, 1.8mm is difficult, and 1.4 or 1.5mm is rare. I used 1.8mm for my build. I strongly suggest you try your very best to find thinner ones for best sensitivity.  
