@@ -15,8 +15,9 @@
 #include "hardware/gpio.h"
 
 #include "board_defs.h"
-
 #include "mpr121.h"
+
+#include "config.h"
 
 #define TOUCH_THRESHOLD 17
 #define RELEASE_THRESHOLD 8
@@ -145,19 +146,23 @@ bool slider_touched(unsigned key)
     }
     int delta =  baseline[key] - readout[key];
 
+    int bias = chu_cfg->sense.global + chu_cfg->sense.keys[key];
+    int touch_thre = TOUCH_THRESHOLD + bias;
+    int release_thre = RELEASE_THRESHOLD + bias / 2;
+
     if (touched[key]) {
-        if (delta > TOUCH_THRESHOLD) {
+        if (delta > touch_thre) {
             debounce[key] = 0;
         }
-        if (debounce[key] > 4) {
-            if (delta < RELEASE_THRESHOLD) {
+        if (debounce[key] > chu_cfg->sense.debounce) {
+            if (delta < release_thre) {
                 touched[key] = false;
             }
         } else {
             debounce[key]++;
         }
     } else if (!touched[key]) {
-        if (delta > TOUCH_THRESHOLD) {
+        if (delta > touch_thre) {
             touched[key] = true;
         }
     }

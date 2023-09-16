@@ -1,8 +1,8 @@
 /*
- * Controller Save Save and Load
+ * Controller Config Save and Load
  * WHowe <github.com/whowechina>
  * 
- * Save is stored in last sector of flash
+ * Config is stored in last sector of flash
  */
 
 #include "save.h"
@@ -27,7 +27,8 @@ static struct {
 } modules[8] = {0};
 static int module_num = 0;
 
-#define SAVE_PAGE_MAGIC 0x13424321
+static uint32_t my_magic = 0xcafecafe;
+
 #define SAVE_SECTOR_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
 typedef struct __attribute ((packed)) {
@@ -66,7 +67,7 @@ static void load_default()
 {
     printf("Load Default\n");
     new_data = default_data;
-    new_data.magic = SAVE_PAGE_MAGIC;
+    new_data.magic = my_magic;
 }
 
 static const page_t *get_page(int id)
@@ -78,7 +79,7 @@ static const page_t *get_page(int id)
 static void save_load()
 {
     for (int i = 0; i < FLASH_SECTOR_SIZE / FLASH_PAGE_SIZE; i++) {
-        if (get_page(i)->magic != SAVE_PAGE_MAGIC) {
+        if (get_page(i)->magic != my_magic) {
             break;
         }
         data_page = i;
@@ -102,8 +103,9 @@ static void save_loaded()
     }
 }
 
-void save_init(io_locker_func locker)
+void save_init(uint32_t magic, io_locker_func locker)
 {
+    my_magic = magic;
     io_lock = locker;
     save_load();
     save_loop();
@@ -142,7 +144,7 @@ void save_request(bool immediately)
     if (!requesting_save) {
         printf("Save marked.\n");
         requesting_save = true;
-        new_data.magic = SAVE_PAGE_MAGIC;
+        new_data.magic = my_magic;
         requesting_time = time_us_64();
     }
     if (immediately) {

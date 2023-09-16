@@ -22,15 +22,15 @@
 #include "usb_descriptors.h"
 
 #include "board_defs.h"
+
+#include "save.h"
+#include "config.h"
+#include "cmd.h"
+
 #include "slider.h"
 #include "air.h"
 #include "rgb.h"
 #include "lzfx.h"
-
-/* Measure the time of a function call */
-#define RUN_TIME(func) \
-   { uint64_t _t = time_us_64(); func; \
-     printf(#func ":%lld\n", time_us_64() - _t); }
 
 struct __attribute__((packed)) {
     uint16_t buttons; // 16 buttons; see JoystickButtons_t for bit mapping
@@ -49,10 +49,13 @@ void report_usb_hid()
     if (tud_hid_ready()) {
         hid_joy.HAT = 0;
         hid_joy.VendorSpec = 0;
-        tud_hid_n_report(0x00, REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy));
-        if (memcmp(&hid_nkro, &sent_hid_nkro, sizeof(hid_nkro)) != 0) {
+        if (chu_cfg->hid.joy) {
+            tud_hid_n_report(0x00, REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy));
+        }
+        if (chu_cfg->hid.nkro &&
+            (memcmp(&hid_nkro, &sent_hid_nkro, sizeof(hid_nkro)) != 0)) {
             sent_hid_nkro = hid_nkro;
-            //tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro));
+            tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro));
         }
     }
 }
@@ -66,41 +69,6 @@ static void pause_core1(bool pause)
         sleep_ms(5); /* wait for any IO ops to finish */
     }
 }
-
-static int fps[2] = {0};
-
-static int get_fps(int core)
-{
-    return fps[core];
-}
-
-static void fps_count(int core)
-{
-    static uint32_t last[2] = {0};
-    static int counter[2] = {0};
-
-    counter[core]++;
-
-    uint32_t now = time_us_32();
-    if (now - last[core] < 1000000) {
-        return;
-    }
-    last[core] = now;
-    fps[core] = counter[core];
-    counter[core] = 0;
-}
-
-static void print_fps()
-{
-    static uint32_t last = 0;
-    uint32_t now = time_us_32();
-    if (now - last < 5000000) {
-        return;
-    }
-    last = now;
-    printf("FPS: %d %d\n", get_fps(0), get_fps(1));
-}
-
 static void gen_joy_report()
 {
     hid_joy.axis = 0;
@@ -182,7 +150,6 @@ static void core1_loop()
 
         slider_update_baseline();
         fps_count(1);
-        print_fps();
         sleep_ms(1);
     }
 }
@@ -190,6 +157,8 @@ static void core1_loop()
 static void core0_loop()
 {
     while(1) {
+        cmd_run();
+        save_loop();
         fps_count(0);
 
         slider_update();
@@ -209,9 +178,15 @@ void init()
     board_init();
     tusb_init();
     stdio_init_all();
+
+    config_init();
+    save_init(0xca34cafe, pause_core1);
+
     slider_init();
     air_init();
     rgb_init();
+
+    cmd_init();
 }
 
 int main(void)
