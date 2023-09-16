@@ -21,9 +21,9 @@
 static const uint8_t TOF_LIST[] = TOF_MUX_LIST;
 static uint16_t distances[sizeof(TOF_LIST)];
 
-const int offset_a = 800;
-const int offset_b = 1000;
-const int pitch = 200;
+const int offset_a = 600;
+const int offset_b = 800;
+const int pitch = 160;
 
 void air_init()
 {
@@ -34,10 +34,8 @@ void air_init()
     gpio_pull_up(TOF_SCL);
 
     i2c_hub_init();
-    sleep_us(10);
 
     for (int i = 0; i < sizeof(TOF_LIST); i++) {
-        sleep_us(10);
         i2c_select(TOF_I2C, 1 << TOF_LIST[i]);
         gp2y0e_write(TOF_I2C, 0xa8, 0); // Accumulation 0:1, 1:5, 2:30, 3:10
         gp2y0e_write(TOF_I2C, 0x3f, 0x30); // Filter 0x00:7, 0x10:5, 0x20:9, 0x30:1

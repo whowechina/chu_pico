@@ -18,7 +18,7 @@
 
 #include "mpr121.h"
 
-#define TOUCH_THRESHOLD 16
+#define TOUCH_THRESHOLD 17
 #define RELEASE_THRESHOLD 8
 
 #define MPR121_ADDR 0x5A
@@ -68,11 +68,11 @@ void slider_init()
     gpio_set_function(MPR121_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(MPR121_SDA);
     gpio_pull_up(MPR121_SCL);
-
+    
     for (int m = 0; m < 3; m++) {
         mpr121_init(MPR121_I2C, MPR121_ADDR + m, mpr121 + m);
     }
-
+    
     init_baseline();
 }
 

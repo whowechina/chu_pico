@@ -186,19 +186,19 @@ static void core1_loop()
 static void core0_loop()
 {
     while(1) {
-        tud_task();
+        run_lights();
+        fps_count(0);
+        print_fps();
+
+        slider_update_baseline();
+
         slider_update();
         air_update();
 
         gen_joy_report();
         gen_nkro_report();
         report_usb_hid();
-
-        run_lights();
-
-        slider_update_baseline();
-        fps_count(0);
-        print_fps();
+        tud_task();
     }
 }
 
