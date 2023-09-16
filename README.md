@@ -3,7 +3,7 @@
 <img src="doc/main.jpg" width="80%">
 
 Features:
-* It's small, made for 15-16 inch screen.
+* It's small, made for 15-17 inch screen.
 * Air towers are replaced with built-in ToF sensors.
 * HID lights, of course!
 * 32 keys (upper and lower rows).
