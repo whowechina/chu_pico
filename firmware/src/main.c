@@ -177,8 +177,12 @@ static void run_lights()
 static void core1_loop()
 {
     while (1) {
+        run_lights();
         rgb_update();
+
+        slider_update_baseline();
         fps_count(1);
+        print_fps();
         sleep_ms(1);
     }
 }
@@ -186,11 +190,7 @@ static void core1_loop()
 static void core0_loop()
 {
     while(1) {
-        run_lights();
         fps_count(0);
-        print_fps();
-
-        slider_update_baseline();
 
         slider_update();
         air_update();
@@ -204,8 +204,8 @@ static void core0_loop()
 
 void init()
 {
-    sleep_ms(200);
-//    set_sys_clock_khz(166000, true);
+    sleep_ms(100);
+    set_sys_clock_khz(150000, true);
     board_init();
     tusb_init();
     stdio_init_all();

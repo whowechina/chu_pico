@@ -5,15 +5,12 @@
 
 #if defined BOARD_CHU_PICO
 
-#define MPR121_I2C i2c0
-#define MPR121_SDA 16
-#define MPR121_SCL 17
+#define I2C_PORT i2c0
+#define I2C_SDA 16
+#define I2C_SCL 17
+#define I2C_FREQ 733*1000
 
-// if TOF_I2C is same as MPR121_I2C, TOF_SCL and TOF_SDA will be ignored
-#define TOF_I2C i2c0
-#define TOF_SDA 16
-#define TOF_SCL 17
-#define TOF_I2C_HUB 19
+#define I2C_HUB_EN 19
 
 #define TOF_MUX_LIST { 1, 2, 0, 4, 5 }
 

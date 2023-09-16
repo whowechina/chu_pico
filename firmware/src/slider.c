@@ -36,8 +36,8 @@ static struct mpr121_sensor mpr121[3];
 
 static void mpr121_read_many(uint8_t addr, uint8_t reg, uint8_t *buf, size_t n)
 {
-    i2c_write_blocking_until(MPR121_I2C, addr, &reg, 1, true, time_us_64() + 2000);
-    i2c_read_blocking_until(MPR121_I2C, addr, buf, n, false, time_us_64() + 2000);
+    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + 2000);
+    i2c_read_blocking_until(I2C_PORT, addr, buf, n, false, time_us_64() + 2000);
 }
 
 static void mpr121_read_many16(uint8_t addr, uint8_t reg, uint16_t *buf, size_t n)
@@ -63,14 +63,14 @@ static void init_baseline()
 
 void slider_init()
 {
-    i2c_init(MPR121_I2C, 400 * 1000);
-    gpio_set_function(MPR121_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(MPR121_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(MPR121_SDA);
-    gpio_pull_up(MPR121_SCL);
+    i2c_init(I2C_PORT, I2C_FREQ);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
     
     for (int m = 0; m < 3; m++) {
-        mpr121_init(MPR121_I2C, MPR121_ADDR + m, mpr121 + m);
+        mpr121_init(I2C_PORT, MPR121_ADDR + m, mpr121 + m);
     }
     
     init_baseline();
@@ -82,9 +82,9 @@ void slider_update()
     mpr121_read_many16(MPR121_ADDR, reg, readout, 12);
     mpr121_read_many16(MPR121_ADDR + 1, reg, readout + 12, 12);
     mpr121_read_many16(MPR121_ADDR + 2, reg, readout + 24, 12);
-    mpr121_touched(touch, mpr121);
-    mpr121_touched(touch + 1, mpr121 + 1);
-    mpr121_touched(touch + 2, mpr121 + 2);
+//    mpr121_touched(touch, mpr121);
+//    mpr121_touched(touch + 1, mpr121 + 1);
+//    mpr121_touched(touch + 2, mpr121 + 2);
 }
 
 void slider_update_baseline()

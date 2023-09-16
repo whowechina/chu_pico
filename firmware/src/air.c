@@ -27,19 +27,19 @@ const int pitch = 160;
 
 void air_init()
 {
-    i2c_init(TOF_I2C, 400 * 1000);
-    gpio_set_function(TOF_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(TOF_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(TOF_SDA);
-    gpio_pull_up(TOF_SCL);
+    i2c_init(I2C_PORT, I2C_FREQ);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
 
     i2c_hub_init();
 
     for (int i = 0; i < sizeof(TOF_LIST); i++) {
-        i2c_select(TOF_I2C, 1 << TOF_LIST[i]);
-        gp2y0e_write(TOF_I2C, 0xa8, 0); // Accumulation 0:1, 1:5, 2:30, 3:10
-        gp2y0e_write(TOF_I2C, 0x3f, 0x30); // Filter 0x00:7, 0x10:5, 0x20:9, 0x30:1
-        gp2y0e_write(TOF_I2C, 0x13, 5); // Pulse [3..7]:[40, 80, 160, 240, 320] us
+        i2c_select(I2C_PORT, 1 << TOF_LIST[i]);
+        gp2y0e_write(I2C_PORT, 0xa8, 0); // Accumulation 0:1, 1:5, 2:30, 3:10
+        gp2y0e_write(I2C_PORT, 0x3f, 0x30); // Filter 0x00:7, 0x10:5, 0x20:9, 0x30:1
+        gp2y0e_write(I2C_PORT, 0x13, 5); // Pulse [3..7]:[40, 80, 160, 240, 320] us
     }
 }
 
@@ -92,8 +92,8 @@ unsigned air_value(uint8_t index)
 void air_update()
 {
     for (int i = 0; i < sizeof(TOF_LIST); i++) {
-        i2c_select(TOF_I2C, 1 << TOF_LIST[i]);
-        distances[i] = gp2y0e_dist16(TOF_I2C);
+        i2c_select(I2C_PORT, 1 << TOF_LIST[i]);
+        distances[i] = gp2y0e_dist16(I2C_PORT);
     }
 }
 
