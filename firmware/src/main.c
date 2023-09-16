@@ -52,7 +52,7 @@ void report_usb_hid()
         tud_hid_n_report(0x00, REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy));
         if (memcmp(&hid_nkro, &sent_hid_nkro, sizeof(hid_nkro)) != 0) {
             sent_hid_nkro = hid_nkro;
-            tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro));
+            //tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro));
         }
     }
 }
