@@ -59,7 +59,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 * 10x 0603 5.1kohm (1~10kohm all fine) resistors (R4 to R13) for I2C pull-up, required for overclock I2C.
 
 ### Light Guide Panel
-* Find a service to cut a light guide panel using DXF or DWG file `Production\CAD\chu_pico_lgp.*`, the size is 256mm*60mm, 1.4mm to 2.0mm thickness, thinner is better for sensitivity. 2.0mm is easy to find, 1.8mm is difficult, and 1.4 or 1.5mm is rare. I used 1.8mm for my build. I strongly suggest you try your very best to find thinner ones for best sensitivity.  
+* Find a service to cut a light guide panel using DXF or DWG file `Production\CAD\chu_pico_lgp.*`, the size is 256mm*60mm, 1.8mm to 2.0mm thickness, thinner is better for sensitivity. 2.0mm is easy to find, 1.8mm is rare. I used 1.8mm for my build.  
   <img src="doc/lgp_1.png" width="90%">
 * LGP material choices:
   * Real LGP (Light Guide Panel) material, it's the best choice.  
@@ -71,11 +71,12 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
   * Clear Acrylic with manual single-side-sanding, it can work too.  
     <img src="doc/lgp_5.png" width="50%">
 
-### PP Touch Cover
-* A **textured** PP polypropylene film sheet, used as the light guide panel cover. It improves touch feel, 0.5mm thichness feels the best. If you can't find one, go get a project folder with textured cover.    
-  <img src="doc/pp_1.png" width="50%">  
-  <img src="doc/pp_2.png" width="80%">
-* Cut the PP sheet to roughly match the shape of the light guide panel, use double-sided tape (at the edge only) to stick it on the light guide panel.
+### Panel Film
+* A self-adhesive **textured**/**frosted** film sheet, it is applied on top surface of the light guide panel. It improves touch feel. You can use buy window sticker film. You **MUST** use self-adhesive ones, **NOT** static cling ones. They're usually very cheap.
+* Cut the film to roughly match the shape of the light guide panel, and stick to the panel.  
+  <img src="doc/film_1.jpg" width="60%">
+* Gentlely rub the film to remove any air bubbles and make it stick tightly.  
+  <img src="doc/film_2.jpg" width="60%">
 
 ###  IR Cover
 * It's for good looking, as it hides 5 ToF sensors.   
@@ -112,7 +113,7 @@ From top to bottom:
 * IR Cover
 * Top Cover
 * Cover Base
-* PP Film
+* Panel Film
 * Light Guide Panel
 * PCB
 * Light Guide Panel Fixer
@@ -128,6 +129,9 @@ You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 * For the new build, hold the BOOTSEL button while connect the USB to a PC, there will be a disk named "RPI-RP2" showed up. Drag the UF2 firmware binary file into it. That's it. There's a small hole at the bottom side of the Chu Pico, it is facing right to the BOOTSEL button.
 * It works on CrazyRedMachine's RedBoard protocol. For more information, please check out CrazyRedMachine's project (Don't forget to give him a star and drop by his GitHub for other cool projects):  
 https://github.com/CrazyRedMachine/RedBoard
+* It has a command line to do configuration. You can use this Web Serial Terminal to connect to the USB serial port of the Chu Pico. (Note: "?" is for help)  
+  https://googlechromelabs.github.io/serial-terminal/  
+  <img src="doc/cmd.png" width="80%">
 
 ## CAD Source File
 I'm using OnShape free subscription. It's powerful but it can't archive original designs to local, so I can only share the link here. STL/DXF/DWG files are exported from this online document.  
