@@ -147,8 +147,8 @@ bool slider_touched(unsigned key)
     int delta =  baseline[key] - readout[key];
 
     int bias = chu_cfg->sense.global + chu_cfg->sense.keys[key];
-    int touch_thre = TOUCH_THRESHOLD + bias;
-    int release_thre = RELEASE_THRESHOLD + bias / 2;
+    int touch_thre = TOUCH_THRESHOLD - bias;
+    int release_thre = RELEASE_THRESHOLD - bias / 2;
 
     if (touched[key]) {
         if (delta > touch_thre) {
