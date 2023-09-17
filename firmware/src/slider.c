@@ -28,7 +28,6 @@ static uint16_t baseline[36];
 static int16_t error[36];
 static uint16_t readout[36];
 static bool touched[36];
-static uint16_t debounce[36];
 static uint16_t touch[3];
 
 static struct mpr121_sensor mpr121[3];
@@ -139,6 +138,9 @@ int slider_delta(unsigned key)
     return readout[key] - baseline[key];
 }
 
+static uint16_t touch_count[36];
+static uint16_t release_count[36];
+
 bool slider_touched(unsigned key)
 {
     if (key >= 32) {
@@ -151,18 +153,23 @@ bool slider_touched(unsigned key)
     int release_thre = RELEASE_THRESHOLD - bias / 2;
 
     if (touched[key]) {
-        if (delta > touch_thre) {
-            debounce[key] = 0;
-        }
-        if (debounce[key] > chu_cfg->sense.debounce) {
-            if (delta < release_thre) {
-                touched[key] = false;
-            }
+        if (delta > release_thre) {
+            release_count[key] = 0;
         } else {
-            debounce[key]++;
+            release_count[key]++;
+        }
+        if (release_count[key] > chu_cfg->sense.debounce_release) {
+            touch_count[key] = 0;
+            touched[key] = false;
         }
     } else if (!touched[key]) {
-        if (delta > touch_thre) {
+        if (delta < touch_thre) {
+            touch_count[key] = 0;
+        } else {
+            touch_count[key]++;
+        }
+        if (touch_count[key] > chu_cfg->sense.debounce_touch) {
+            release_count[key] = 0;
             touched[key] = true;
         }
     }

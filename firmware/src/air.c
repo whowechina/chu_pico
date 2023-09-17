@@ -14,16 +14,13 @@
 #include "hardware/gpio.h"
 
 #include "board_defs.h"
+#include "config.h"
 
 #include "gp2y0e.h"
 #include "i2c_hub.h"
 
 static const uint8_t TOF_LIST[] = TOF_MUX_LIST;
 static uint16_t distances[sizeof(TOF_LIST)];
-
-const int offset_a = 600;
-const int offset_b = 800;
-const int pitch = 160;
 
 void air_init()
 {
@@ -50,9 +47,11 @@ size_t air_num()
 
 static inline uint8_t air_bits(int dist, int offset)
 {
-    if (dist < offset) {
+    if ((dist < offset) || (dist == 4095)) {
         return 0;
     }
+
+    int pitch = chu_cfg->tof.pitch * 10;
     int index = (dist - offset) / pitch;
     if (index >= 6) {
         return 0;
@@ -63,10 +62,12 @@ static inline uint8_t air_bits(int dist, int offset)
 
 uint8_t air_bitmap()
 {
+    int offset = chu_cfg->tof.offset * 10;
+    int pitch = chu_cfg->tof.pitch * 10;
     uint8_t bitmap = 0;
     for (int i = 0; i < sizeof(TOF_LIST); i++) {
-        bitmap |= air_bits(distances[i], offset_a);
-        bitmap |= air_bits(distances[i], offset_b);
+        bitmap |= air_bits(distances[i], offset) |
+                  air_bits(distances[i], offset + pitch);
     }
     return bitmap;
 }
@@ -76,13 +77,14 @@ unsigned air_value(uint8_t index)
     if (index >= sizeof(TOF_LIST)) {
         return 0;
     }
-
-    uint8_t bitmap = air_bits(distances[index], offset_a) |
-                     air_bits(distances[index], offset_b);
+    int offset = chu_cfg->tof.offset * 10;
+    int pitch = chu_cfg->tof.pitch * 10;
+    uint8_t bitmap = air_bits(distances[index], offset) |
+                     air_bits(distances[index], offset + pitch);
 
     for (int i = 0; i < 6; i++) {
         if (bitmap & (1 << i)) {
-            return i + 1;
+            return i + 1; // lowest detected position
         }
     }
 

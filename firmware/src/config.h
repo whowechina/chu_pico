@@ -29,7 +29,8 @@ typedef struct __attribute__((packed)) {
     } tof;
     struct {
         int8_t global;
-        uint8_t debounce;
+        uint8_t debounce_touch;
+        uint8_t debounce_release;        
         int8_t keys[32];
     } sense;
     struct {

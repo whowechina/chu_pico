@@ -60,15 +60,6 @@ void report_usb_hid()
     }
 }
 
-static bool request_core1_pause = false;
-
-static void pause_core1(bool pause)
-{
-    request_core1_pause = pause;
-    if (pause) {
-        sleep_ms(5); /* wait for any IO ops to finish */
-    }
-}
 static void gen_joy_report()
 {
     hid_joy.axis = 0;
@@ -142,12 +133,15 @@ static void run_lights()
     }
 }
 
+static mutex_t core1_io_lock;
 static void core1_loop()
 {
     while (1) {
-        run_lights();
-        rgb_update();
-
+        if (mutex_try_enter(&core1_io_lock, NULL)) {
+            run_lights();
+            rgb_update();
+            mutex_exit(&core1_io_lock);
+        }
         slider_update_baseline();
         fps_count(1);
         sleep_ms(1);
@@ -180,7 +174,8 @@ void init()
     stdio_init_all();
 
     config_init();
-    save_init(0xca34cafe, pause_core1);
+    mutex_init(&core1_io_lock);
+    save_init(0xca34cafe, &core1_io_lock);
 
     slider_init();
     air_init();

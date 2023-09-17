@@ -56,7 +56,7 @@ static void drive_led()
 {
     static uint64_t last = 0;
     uint64_t now = time_us_64();
-    if (now - last < 5000) { // no faster than 200Hz
+    if (now - last < 4000) { // no faster than 250Hz
         return;
     }
     last = now;

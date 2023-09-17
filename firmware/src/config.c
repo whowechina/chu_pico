@@ -27,10 +27,11 @@ static chu_cfg_t default_cfg = {
     },
     .tof = {
         .offset = 64,
-        .pitch = 16,
+        .pitch = 18,
     },
     .sense = {
-        .debounce = 4,
+        .debounce_touch = 1,
+        .debounce_release = 8,
      },
     .hid = {
         .joy = 0x0f,
@@ -46,14 +47,10 @@ static void config_loaded()
         chu_cfg->style.level = default_cfg.style.level;
         config_changed();
     }
-    if ((chu_cfg->tof.offset < 400) || (chu_cfg->tof.offset > 2000) ||
-        (chu_cfg->tof.pitch < 50) || (chu_cfg->tof.pitch > 500)) {
+    if ((chu_cfg->tof.offset < 40) ||
+        (chu_cfg->tof.pitch < 4) || (chu_cfg->tof.pitch > 50)) {
         chu_cfg->tof = default_cfg.tof;
         config_changed();
-    }
-
-    if (chu_cfg->sense.debounce > 32) {
-        chu_cfg->sense.debounce = default_cfg.sense.debounce;
     }
 }
 

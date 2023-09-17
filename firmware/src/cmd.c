@@ -8,6 +8,7 @@
 #include "pico/stdlib.h"
 
 #include "config.h"
+#include "save.h"
 
 #define SENSE_LIMIT_MAX 8
 #define SENSE_LIMIT_MIN -8
@@ -29,7 +30,7 @@ typedef struct {
 command_t commands[MAX_COMMANDS];
 int num_commands = 0;
 
-void register_command(char *name, cmd_handler_t handler)
+static void register_command(char *name, cmd_handler_t handler)
 {
     if (num_commands < MAX_COMMANDS) {
         strcpy(commands[num_commands].name, name);
@@ -38,7 +39,7 @@ void register_command(char *name, cmd_handler_t handler)
     }
 }
 
-void handle_help(int argc, char *argv[])
+static void handle_help(int argc, char *argv[])
 {
     printf("Available commands:\n");
     for (int i = 0; i < num_commands; i++) {
@@ -72,7 +73,8 @@ static void list_tof()
 static void list_sense()
 {
     printf("[Sense]\n");
-    printf("  Global: %d, debounce: %d\n", chu_cfg->sense.global, chu_cfg->sense.debounce);
+    printf("  Global: %d, debounce (touch, release): %d, %d\n", chu_cfg->sense.global,
+           chu_cfg->sense.debounce_touch, chu_cfg->sense.debounce_release);
     printf("    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15|\n");
     printf("    -----------------------------------------------------------------\n");
     printf("  A |");
@@ -143,12 +145,12 @@ void fps_count(int core)
     counter[core] = 0;
 }
 
-void handle_fps(int argc, char *argv[])
+static void handle_fps(int argc, char *argv[])
 {
     printf("FPS: core 0: %d, core 1: %d\n", fps[0], fps[1]);
 }
 
-void handle_hid(int argc, char *argv[])
+static void handle_hid(int argc, char *argv[])
 {
     const char *usage = "Usage: hid <joy|nkro>\n";
     if (argc != 1) {
@@ -172,6 +174,52 @@ void handle_hid(int argc, char *argv[])
     config_changed();
 }
 
+static int extract_non_neg_int(const char *param, int len)
+{
+    if (len == 0) {
+        len = strlen(param);
+    }
+    int result = 0;
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(param[i])) {
+            return -1;
+        }
+        result = result * 10 + param[i] - '0';
+    }
+    return result;
+}
+
+static void handle_tof(int argc, char *argv[])
+{
+    const char *usage = "Usage: tof <offset> [pitch]\n"
+                        "  offset: 40-255\n"
+                        "  pitch: 4-50\n";
+    if ((argc < 1) || (argc > 2)) {
+        printf(usage);
+        return;
+    }
+
+    int offset = chu_cfg->tof.offset;
+    int pitch = chu_cfg->tof.pitch;
+    if (argc >= 1) {
+        offset = extract_non_neg_int(argv[0], 0);
+    }
+    if (argc == 2) {
+        pitch = extract_non_neg_int(argv[1], 0);
+    }
+
+    if ((offset < 40) || (offset > 255) || (pitch < 4) || (pitch > 50)) {
+        printf(usage);
+        return;
+    }
+
+    chu_cfg->tof.offset = offset;
+    chu_cfg->tof.pitch = pitch;
+
+    config_changed();
+    list_tof();
+}
+
 static uint8_t *extract_key(const char *param)
 {
     int len = strlen(param);
@@ -185,22 +233,15 @@ static uint8_t *extract_key(const char *param)
         return NULL;
     }
 
-    int id = 0;
-    for (int i = 0; i < len - 1; i++) {
-        if (!isdigit(param[i])) {
-            return NULL;
-        }
-        id = id * 10 + param[i] - '0';
-    }
-
-    if (id > 15) {
+    int id = extract_non_neg_int(param, len - 1);
+    if ((id < 0) || (id > 15)) {
         return NULL;
     }
 
     return &chu_cfg->sense.keys[id * 2 + offset];
 }
 
-void handle_sense(int argc, char *argv[])
+static void handle_sense(int argc, char *argv[])
 {
     const char *usage = "Usage: sense [key] <+|->\n"
                         "Example:\n"
@@ -214,7 +255,7 @@ void handle_sense(int argc, char *argv[])
     }
 
     int8_t *target = &chu_cfg->sense.global;
-    const char *op = argv[1];
+    const char *op = argv[argc - 1];
     if (argc == 2) {
         target = extract_key(argv[0]);
         if (!target) {
@@ -240,41 +281,58 @@ void handle_sense(int argc, char *argv[])
     list_sense();
 }
 
-void handle_debounce(int argc, char *argv[])
+static void handle_debounce(int argc, char *argv[])
 {
-    const char *usage = "Usage: debounce <0..32>\n";
-    if (argc != 1) {
+    const char *usage = "Usage: debounce <touch> [release]\n"
+                        "  touch, release: 0-255\n";
+    if ((argc < 1) || (argc > 2)) {
         printf(usage);
         return;
     }
 
-    int num = 0;
-    for (int i = 0; i < strlen(argv[0]); i++) {
-        if (!isdigit(argv[0][i])) {
-            printf(usage);
-            return;
-        }
-        num = num * 10 + argv[0][i] - '0';
+    int touch = chu_cfg->sense.debounce_touch;
+    int release = chu_cfg->sense.debounce_release;
+    if (argc >= 1) {
+        touch = extract_non_neg_int(argv[0], 0);
+    }
+    if (argc == 2) {
+        release = extract_non_neg_int(argv[1], 0);
     }
 
-    if (num > 32) {
+    if ((touch < 0) || (release < 0)) {
         printf(usage);
         return;
     }
 
-    chu_cfg->sense.debounce = num;
+    chu_cfg->sense.debounce_touch = touch;
+    chu_cfg->sense.debounce_release = release;
+
     config_changed();
+    list_sense();
+}
+
+static void handle_save()
+{
+    save_request(true);
+}
+
+static void handle_factory_reset()
+{
+    config_factory_reset();
+    printf("Factory reset done.\n");
 }
 
 void cmd_init()
 {
-    fcntl(0, F_SETFL, O_NONBLOCK);
     register_command("?", handle_help);
     register_command("list", handle_list);
     register_command("fps", handle_fps);
     register_command("hid", handle_hid);
+    register_command("tof", handle_tof);
     register_command("sense", handle_sense);
     register_command("debounce", handle_debounce);
+    register_command("save", handle_save);
+    register_command("factory", config_factory_reset);
 }
 
 static char cmd_buf[256];

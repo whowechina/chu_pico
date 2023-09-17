@@ -18,7 +18,7 @@
 #include "pico/stdio.h"
 
 #include "hardware/flash.h"
-#include "hardware/sync.h"
+#include "pico/multicore.h"
 
 static struct {
     size_t size;
@@ -28,6 +28,8 @@ static struct {
 static int module_num = 0;
 
 static uint32_t my_magic = 0xcafecafe;
+
+#define SAVE_TIMEOUT_US 30000000
 
 #define SAVE_SECTOR_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
@@ -44,23 +46,27 @@ static int data_page = -1;
 static bool requesting_save = false;
 static uint64_t requesting_time = 0;
 
-static io_locker_func io_lock;
+static mutex_t *io_lock;
 
 static void save_program()
 {
     old_data = new_data;
 
     data_page = (data_page + 1) % (FLASH_SECTOR_SIZE / FLASH_PAGE_SIZE);
-    printf("Program Flash %d %8lx\n", data_page, old_data.magic);
-    io_lock(true);
-    uint32_t ints = save_and_disable_interrupts();
-    if (data_page == 0) {
-        flash_range_erase(SAVE_SECTOR_OFFSET, FLASH_SECTOR_SIZE);
+    printf("\nProgram Flash %d %8lx\n", data_page, old_data.magic);
+    if (mutex_enter_timeout_us(io_lock, 100000)) {
+        sleep_ms(5); /* wait for all io operations to finish */
+        uint32_t ints = save_and_disable_interrupts();
+        if (data_page == 0) {
+            flash_range_erase(SAVE_SECTOR_OFFSET, FLASH_SECTOR_SIZE);
+        }
+        flash_range_program(SAVE_SECTOR_OFFSET + data_page * FLASH_PAGE_SIZE,
+                            (uint8_t *)&old_data, FLASH_PAGE_SIZE);
+        restore_interrupts(ints);
+        mutex_exit(io_lock);
+    } else {
+        printf("Program Flash Failed.\n");
     }
-    flash_range_program(SAVE_SECTOR_OFFSET + data_page * FLASH_PAGE_SIZE,
-                        (uint8_t *)&old_data, FLASH_PAGE_SIZE);
-    restore_interrupts(ints);
-    io_lock(false);
 }
 
 static void load_default()
@@ -103,7 +109,7 @@ static void save_loaded()
     }
 }
 
-void save_init(uint32_t magic, io_locker_func locker)
+void save_init(uint32_t magic, mutex_t *locker)
 {
     my_magic = magic;
     io_lock = locker;
@@ -114,17 +120,13 @@ void save_init(uint32_t magic, io_locker_func locker)
 
 void save_loop()
 {
-    if (requesting_save && (time_us_64() - requesting_time > 1000000)) {
+    if (requesting_save && (time_us_64() - requesting_time > SAVE_TIMEOUT_US)) {
         requesting_save = false;
-        printf("Time to save.\n");
         /* only when data is actually changed */
-        for (int i = 0; i < sizeof(old_data); i++) {
-            if (((uint8_t *)&old_data)[i] != ((uint8_t *)&new_data)[i]) {
-                save_program();
-                return;
-            }
+        if (memcmp(&old_data, &new_data, sizeof(old_data)) == 0) {
+            return;
         }
-        printf("No change.\n");
+        save_program();
     }
 }
 
@@ -142,7 +144,7 @@ void *save_alloc(size_t size, void *def, void (*after_load)())
 void save_request(bool immediately)
 {
     if (!requesting_save) {
-        printf("Save marked.\n");
+        printf("Save requested.\n");
         requesting_save = true;
         new_data.magic = my_magic;
         requesting_time = time_us_64();
