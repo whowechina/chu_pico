@@ -1,8 +1,8 @@
 /*
- * Chu Pico air sensor
+ * Chu Pico Air Sensor
  * WHowe <github.com/whowechina>
  * 
- * Use ToF (Toshiba GP2Y0E03) to detect air keys
+ * Use ToF (Sharp GP2Y0E03) to detect air keys
  */
 
 #include "air.h"
