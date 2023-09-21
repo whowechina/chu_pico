@@ -11,6 +11,13 @@
 
 #define GP2Y0E_DEF_ADDR 0x40
 
+static inline bool gp2y0e_is_present(i2c_inst_t *i2c_port)
+{
+    uint8_t cmd[] = {0x5e};
+    return i2c_write_blocking_until(i2c_port, GP2Y0E_DEF_ADDR, cmd, 1, true,
+                                    time_us_64() + 1000) == 1;
+}
+
 static inline uint16_t gp2y0e_write(i2c_inst_t *i2c_port, uint8_t addr, uint8_t val)
 {
     uint8_t cmd[] = {addr, val};
