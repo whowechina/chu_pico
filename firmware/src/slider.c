@@ -100,12 +100,12 @@ void slider_update_baseline()
     }
 
     iteration++;
-    if (iteration > 100) {
+    if (iteration > 50) {
         iteration = 0;
         for (int i = 0; i < 32; i++) {
-            if (error[i] > 100) {
+            if (error[i] > 50) {
                 baseline[i] ++;
-            } else if (error[i] < -100) {
+            } else if (error[i] < -50) {
                 baseline[i] --;
             } else {
             }

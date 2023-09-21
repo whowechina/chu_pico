@@ -8,6 +8,7 @@
 #include "pico/stdlib.h"
 
 #include "config.h"
+#include "slider.h"
 #include "save.h"
 
 #define SENSE_LIMIT_MAX 8
@@ -75,7 +76,7 @@ static void list_sense()
     printf("[Sense]\n");
     printf("  Global: %d, debounce (touch, release): %d, %d\n", chu_cfg->sense.global,
            chu_cfg->sense.debounce_touch, chu_cfg->sense.debounce_release);
-    printf("    | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15|\n");
+    printf("    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15| 16|\n");
     printf("    -----------------------------------------------------------------\n");
     printf("  A |");
     for (int i = 0; i < 16; i++) {
@@ -234,7 +235,7 @@ static uint8_t *extract_key(const char *param)
     }
 
     int id = extract_non_neg_int(param, len - 1);
-    if ((id < 0) || (id > 15)) {
+    if ((id < 1) || (id > 16)) {
         return NULL;
     }
 
@@ -311,6 +312,30 @@ static void handle_debounce(int argc, char *argv[])
     list_sense();
 }
 
+static void handle_baseline()
+{
+    printf("    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15| 16|\n");
+    printf("    -----------------------------------------------------------------\n");
+    printf("  A |");
+    for (int i = 0; i < 16; i++) {
+        printf("%3d|", slider_baseline(i * 2));
+    }
+    printf("\n  B |");
+    for (int i = 0; i < 16; i++) {
+        printf("%3d|", slider_baseline(i * 2 + 1));
+    }
+    printf("\n");
+    printf(" dA |");
+    for (int i = 0; i < 16; i++) {
+        printf("%3d|", slider_delta(i * 2));
+    }
+    printf("\n dB |");
+    for (int i = 0; i < 16; i++) {
+        printf("%3d|", slider_delta(i * 2 + 1));
+    }
+    printf("\n");
+}
+
 static void handle_save()
 {
     save_request(true);
@@ -331,6 +356,7 @@ void cmd_init()
     register_command("tof", handle_tof);
     register_command("sense", handle_sense);
     register_command("debounce", handle_debounce);
+    register_command("baseline", handle_baseline);
     register_command("save", handle_save);
     register_command("factory", config_factory_reset);
 }
