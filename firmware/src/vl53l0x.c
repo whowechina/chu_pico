@@ -247,14 +247,14 @@ bool vl53l0x_init_tof(bool io_2v8)
 void write_reg(uint8_t reg, uint8_t value)
 {
     uint8_t data[2] = { reg, value };
-    i2c_write_blocking(I2C_PORT, addr, data, 2, false);
+    i2c_write_blocking_until(I2C_PORT, addr, data, 2, false, time_us_64() + IO_TIMEOUT_US);
 }
 
 // Write a 16-bit register
 void write_reg16(uint8_t reg, uint16_t value)
 {
     uint8_t data[3] = { reg, value >> 8, value & 0xff };
-    i2c_write_blocking(I2C_PORT, addr, data, 3, false);
+    i2c_write_blocking_until(I2C_PORT, addr, data, 3, false, time_us_64() + IO_TIMEOUT_US);
 }
 
 // Write a 32-bit register
@@ -262,15 +262,15 @@ void write_reg32(uint8_t reg, uint32_t value)
 {
     uint8_t data[5] = { reg, value >> 24, (value >> 16) & 0xff,
                              (value >> 8) & 0xff, value & 0xff };
-    i2c_write_blocking(I2C_PORT, addr, data, 5, false);
+    i2c_write_blocking_until(I2C_PORT, addr, data, 5, false, time_us_64() + IO_TIMEOUT_US);
 }
 
 // Read an 8-bit register
 uint8_t read_reg(uint8_t reg)
 {
     uint8_t value;
-    i2c_write_blocking(I2C_PORT, addr, &reg, 1, true);
-    i2c_read_blocking(I2C_PORT, addr, &value, 1, false);
+    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + IO_TIMEOUT_US);
+    i2c_read_blocking_until(I2C_PORT, addr, &value, 1, false, time_us_64() + IO_TIMEOUT_US);
     return value;
 }
 
@@ -278,8 +278,8 @@ uint8_t read_reg(uint8_t reg)
 uint16_t read_reg16(uint8_t reg)
 {
     uint8_t value[2];
-    i2c_write_blocking(I2C_PORT, addr, &reg, 1, true);
-    i2c_read_blocking(I2C_PORT, addr, value, 2, false);
+    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + IO_TIMEOUT_US);
+    i2c_read_blocking_until(I2C_PORT, addr, value, 2, false, time_us_64() + IO_TIMEOUT_US);
     return value[0] << 8 | value[1];
 }
 
@@ -287,8 +287,8 @@ uint16_t read_reg16(uint8_t reg)
 uint32_t read_reg32(uint8_t reg)
 {
     uint8_t value[4];
-    i2c_write_blocking(I2C_PORT, addr, &reg, 1, true);
-    i2c_read_blocking(I2C_PORT, addr, value, 4, false);
+    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + IO_TIMEOUT_US);
+    i2c_read_blocking_until(I2C_PORT, addr, value, 4, false, time_us_64() + IO_TIMEOUT_US);
     return (uint32_t)((value[0] << 24) | (value[1] << 16) | (value[2] << 8) | value[3]);
 }
 
@@ -296,16 +296,16 @@ uint32_t read_reg32(uint8_t reg)
 // starting at the given register
 void write_many(uint8_t reg, const uint8_t *src, uint8_t len)
 {
-    i2c_write_blocking(I2C_PORT, addr, &reg, 1, true);
-    i2c_write_blocking(I2C_PORT, addr, src, len, false);
+    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + IO_TIMEOUT_US);
+    i2c_write_blocking_until(I2C_PORT, addr, src, len, false, time_us_64() + IO_TIMEOUT_US);
 }
 
 // Read an arbitrary number of bytes from the sensor, starting at the given
 // register, into the given array
 void read_many(uint8_t reg, uint8_t *dst, uint8_t len)
 {
-    i2c_write_blocking(I2C_PORT, addr, &reg, 1, true);
-    i2c_read_blocking(I2C_PORT, addr, dst, len, false);
+    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + IO_TIMEOUT_US);
+    i2c_read_blocking_until(I2C_PORT, addr, dst, len, false, time_us_64() + IO_TIMEOUT_US);
 }
 
 // Set the return signal rate limit check value in units of MCPS (mega counts

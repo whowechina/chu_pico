@@ -51,10 +51,10 @@ static void handle_help(int argc, char *argv[])
 static void list_colors()
 {
     printf("[Colors]\n");
-    printf("  Key upper: %6x, lower: %6x, both: %6x, off: %6x\n", 
+    printf("  Key upper: %06x, lower: %06x, both: %06x, off: %06x\n", 
            chu_cfg->colors.key_on_upper, chu_cfg->colors.key_on_lower,
            chu_cfg->colors.key_on_both, chu_cfg->colors.key_off);
-    printf("  Gap: %6x\n", chu_cfg->colors.gap);
+    printf("  Gap: %06x\n", chu_cfg->colors.gap);
 }
 
 static void list_style()
@@ -234,8 +234,8 @@ static uint8_t *extract_key(const char *param)
         return NULL;
     }
 
-    int id = extract_non_neg_int(param, len - 1);
-    if ((id < 1) || (id > 16)) {
+    int id = extract_non_neg_int(param, len - 1) - 1;
+    if ((id < 0) || (id > 15)) {
         return NULL;
     }
 
