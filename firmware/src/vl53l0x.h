@@ -1,6 +1,8 @@
 /*
  * VL53L0X Distance measurement sensor
  * WHowe <github.com/whowechina>
+ * 
+ * Most of this VL53L0X code is from https://github.com/pololu/vl53l0x-arduino
  */
 
 #ifndef VL53L0X_H
@@ -102,7 +104,7 @@ typedef enum {
 } vcselPeriodType;
 
 void vl53l0x_init(i2c_inst_t *i2c_port, uint8_t i2c_addr);
-
+bool vl53l0x_is_present();
 bool vl53l0x_init_tof(bool io_2v8);
 
 void write_reg(uint8_t reg, uint8_t value);
@@ -124,8 +126,9 @@ uint32_t getMeasurementTimingBudget();
 bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks);
 uint8_t getVcselPulsePeriod(vcselPeriodType type);
 
-void startContinuous(uint32_t period_ms);
-void stopContinuous();
+void vl53l0x_start_continuous(uint32_t period_ms);
+void vl53l0x_stop_continuous();
+
 uint16_t readRangeContinuousMillimeters();
 uint16_t readRangeSingleMillimeters();
 

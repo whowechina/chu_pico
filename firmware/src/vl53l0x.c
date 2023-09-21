@@ -1,6 +1,8 @@
 /*
  * VL53L0X Distance measurement sensor
  * WHowe <github.com/whowechina>
+ *
+ * Most of this VL53L0X code is from https://github.com/pololu/vl53l0x-arduino
  */
 
 #include <stdint.h>
@@ -9,38 +11,24 @@
 #include "hardware/i2c.h"
 #include "board_defs.h"
 
-#define VL53L0X_DEF_ADDR 0x29
-// Most of the functionality of this library is based on the VL53L0X API
-// provided by ST (STSW-IMG005), and some of the explanatory comments are quoted
-// or paraphrased from the API source code, API user manual (UM2039), and the
-// VL53L0X datasheet.
-
 #include "vl53l0x.h"
 
-// Defines /////////////////////////////////////////////////////////////////////
+#define VL53L0X_DEF_ADDR 0x29
 
 #define IO_TIMEOUT_US 10000
-// The Arduino two-wire interface uses a 7-bit number for the address,
-// and sets the last bit correctly based on reads and writes
-#define ADDRESS_DEFAULT 0b0101001
 
 // Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
-// from register value
-// based on VL53L0X_decode_vcsel_period()
 #define decodeVcselPeriod(reg_val) (((reg_val) + 1) << 1)
 
 // Encode VCSEL pulse period register value from period in PCLKs
-// based on VL53L0X_encode_vcsel_period()
 #define encodeVcselPeriod(period_pclks) (((period_pclks) >> 1) - 1)
 
 // Calculate macro period in *nanoseconds* from VCSEL period in PCLKs
-// based on VL53L0X_calc_macro_period_ps()
 // PLL_period_ps = 1655; macro_period_vclks = 2304
 #define calcMacroPeriod(vcsel_period_pclks) ((((uint32_t)2304 * (vcsel_period_pclks) * 1655) + 500) / 1000)
 
 static i2c_inst_t *port;
 static uint8_t addr = VL53L0X_DEF_ADDR;
-static uint16_t io_timeout = 100;
 
 static uint8_t stop_variable; // read by init and used when starting measurement; is StopVariable field of VL53L0X_DevData_t structure in API
 static uint32_t measurement_timing_budget_us;
@@ -53,26 +41,20 @@ void vl53l0x_init(i2c_inst_t *i2c_port, uint8_t i2c_addr)
     }
 }
 
-// Initialize sensor using sequence based on VL53L0X_DataInit(),
-// VL53L0X_StaticInit(), and VL53L0X_PerformRefCalibration().
-// This function does not perform reference SPAD calibration
-// (VL53L0X_PerformRefSpadManagement()), since the API user manual says that it
-// is performed by ST on the bare modules; it seems like that should work well
-// enough unless a cover glass is added.
-// If io_2v8 (optional) is true or not given, the sensor is configured for 2V8
-// mode.
+bool vl53l0x_is_present()
+{
+    return read_reg(IDENTIFICATION_MODEL_ID) == 0xEE;
+}
+
 bool vl53l0x_init_tof(bool io_2v8)
 {
     // check model ID register (value specified in datasheet)
-    if (read_reg(IDENTIFICATION_MODEL_ID) != 0xEE) {
+    if (!vl53l0x_is_present()) {
         return false;
     }
 
-    // VL53L0X_DataInit() begin
-
     // sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
-    if (io_2v8)
-    {
+    if (io_2v8) {
         write_reg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
         read_reg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV) | 0x01); // set bit 0
     }
@@ -96,21 +78,17 @@ bool vl53l0x_init_tof(bool io_2v8)
 
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0xFF);
 
-    // VL53L0X_DataInit() end
-
-    // VL53L0X_StaticInit() begin
-
     uint8_t spad_count;
     bool spad_type_is_aperture;
-    if (!getSpadInfo(&spad_count, &spad_type_is_aperture)) { return false; }
+    if (!getSpadInfo(&spad_count, &spad_type_is_aperture)) {
+        return false;
+    }
 
     // The SPAD map (RefGoodSpadMap) is read by VL53L0X_get_info_from_device() in
     // the API, but the same data seems to be more easily readable from
     // GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
     uint8_t ref_spad_map[6];
     read_many(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, ref_spad_map, 6);
-
-    // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
 
     write_reg(0xFF, 0x01);
     write_reg(DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00);
@@ -136,11 +114,6 @@ bool vl53l0x_init_tof(bool io_2v8)
     }
 
     write_many(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, ref_spad_map, 6);
-
-    // -- VL53L0X_set_reference_spads() end
-
-    // -- VL53L0X_load_tuning_settings() begin
-    // DefaultTuningSettings from vl53l0x_tuning.h
 
     write_reg(0xFF, 0x01);
     write_reg(0x00, 0x00);
@@ -236,16 +209,9 @@ bool vl53l0x_init_tof(bool io_2v8)
     write_reg(0xFF, 0x00);
     write_reg(0x80, 0x00);
 
-    // -- VL53L0X_load_tuning_settings() end
-
-    // "Set interrupt config to new sample ready"
-    // -- VL53L0X_SetGpioConfig() begin
-
     write_reg(SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
     write_reg(GPIO_HV_MUX_ACTIVE_HIGH, read_reg(GPIO_HV_MUX_ACTIVE_HIGH) & ~0x10); // active low
     write_reg(SYSTEM_INTERRUPT_CLEAR, 0x01);
-
-    // -- VL53L0X_SetGpioConfig() end
 
     measurement_timing_budget_us = getMeasurementTimingBudget();
 
@@ -261,28 +227,18 @@ bool vl53l0x_init_tof(bool io_2v8)
     // "Recalculate timing budget"
     setMeasurementTimingBudget(measurement_timing_budget_us);
 
-    // VL53L0X_StaticInit() end
-
-    // VL53L0X_PerformRefCalibration() begin (VL53L0X_perform_ref_calibration())
-
-    // -- VL53L0X_perform_vhv_calibration() begin
-
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0x01);
-    if (!performSingleRefCalibration(0x40)) { return false; }
-
-    // -- VL53L0X_perform_vhv_calibration() end
-
-    // -- VL53L0X_perform_phase_calibration() begin
+    if (!performSingleRefCalibration(0x40)) {
+        return false;
+    }
 
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0x02);
-    if (!performSingleRefCalibration(0x00)) { return false; }
-
-    // -- VL53L0X_perform_phase_calibration() end
+    if (!performSingleRefCalibration(0x00)) {
+        return false;
+    }
 
     // "restore the previous Sequence Config"
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0xE8);
-
-    // VL53L0X_PerformRefCalibration() end
 
     return true;
 }
@@ -710,7 +666,7 @@ uint8_t getVcselPulsePeriod(vcselPeriodType type)
 // inter-measurement period in milliseconds determining how often the sensor
 // takes a measurement.
 // based on VL53L0X_StartMeasurement()
-void startContinuous(uint32_t period_ms)
+void vl53l0x_start_continuous(uint32_t period_ms)
 {
     write_reg(0x80, 0x01);
     write_reg(0xFF, 0x01);
@@ -748,7 +704,7 @@ void startContinuous(uint32_t period_ms)
 
 // Stop continuous measurements
 // based on VL53L0X_StopMeasurement()
-void stopContinuous()
+void vl53l0x_stop_continuous()
 {
     write_reg(SYSRANGE_START, 0x01); // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
 

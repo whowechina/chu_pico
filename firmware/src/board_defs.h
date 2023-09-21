@@ -12,8 +12,6 @@
 
 #define I2C_HUB_EN 19
 
-//#define TOF_GP2Y0E03
-#define TOF_VL53L0X
 #define TOF_MUX_LIST { 1, 2, 0, 4, 5 }
 
 #define RGB_PIN 2
