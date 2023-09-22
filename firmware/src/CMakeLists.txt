@@ -4,7 +4,8 @@ set(LWIP_ROOT ${PICO_SDK_PATH}/lib/lwip)
 function(make_firmware board board_def)
     pico_sdk_init()
     add_executable(${board}
-        main.c slider.c air.c rgb.c save.c config.c cmd.c lzfx.c vl53l0x.c usb_descriptors.c)
+        main.c slider.c air.c rgb.c save.c config.c cmd.c lzfx.c
+        vl53l0x.c mpr121.c usb_descriptors.c)
     target_compile_definitions(${board} PUBLIC ${board_def})
     pico_enable_stdio_usb(${board} 1)
     pico_enable_stdio_uart(${board} 0)
@@ -20,7 +21,7 @@ function(make_firmware board board_def)
     target_link_libraries(${board} PRIVATE
         pico_multicore pico_stdlib hardware_pio hardware_pwm hardware_flash
         hardware_adc hardware_i2c hardware_watchdog
-        tinyusb_device tinyusb_board pico-mpr121)
+        tinyusb_device tinyusb_board)
 
     pico_add_extra_outputs(${board})
 

@@ -11,8 +11,8 @@
 #include "slider.h"
 #include "save.h"
 
-#define SENSE_LIMIT_MAX 8
-#define SENSE_LIMIT_MIN -8
+#define SENSE_LIMIT_MAX 7
+#define SENSE_LIMIT_MIN -7
 
 #define MAX_COMMANDS 20
 #define MAX_COMMAND_LENGTH 20
@@ -76,15 +76,15 @@ static void list_sense()
     printf("[Sense]\n");
     printf("  Global: %d, debounce (touch, release): %d, %d\n", chu_cfg->sense.global,
            chu_cfg->sense.debounce_touch, chu_cfg->sense.debounce_release);
-    printf("    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15| 16|\n");
-    printf("    -----------------------------------------------------------------\n");
+    printf("    | 1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|13|14|15|16|\n");
+    printf("    -------------------------------------------------\n");
     printf("  A |");
     for (int i = 0; i < 16; i++) {
-        printf("%3d|", chu_cfg->sense.keys[i * 2]);
+        printf("%2d|", chu_cfg->sense.keys[i * 2]);
     }
     printf("\n  B |");
     for (int i = 0; i < 16; i++) {
-        printf("%3d|", chu_cfg->sense.keys[i * 2 + 1]);
+        printf("%2d|", chu_cfg->sense.keys[i * 2 + 1]);
     }
     printf("\n");
 }
@@ -244,12 +244,12 @@ static uint8_t *extract_key(const char *param)
 
 static void handle_sense(int argc, char *argv[])
 {
-    const char *usage = "Usage: sense [key] <+|->\n"
+    const char *usage = "Usage: sense [key] <+|-|0>\n"
                         "Example:\n"
                         "  >sense +\n"
                         "  >sense -\n"
                         "  >sense 1A +\n"
-                        "  >sense 13B -\n";
+                        "  >sense 13B 0\n";
     if ((argc < 1) || (argc > 2)) {
         printf(usage);
         return;
@@ -273,11 +273,14 @@ static void handle_sense(int argc, char *argv[])
         if (*target > SENSE_LIMIT_MIN) {
             (*target)--;
         }
+    } else if (strcmp(op, "0") == 0) {
+        *target = 0;
     } else {
         printf(usage);
         return;
     }
 
+    slider_update_config();
     config_changed();
     list_sense();
 }
@@ -285,7 +288,7 @@ static void handle_sense(int argc, char *argv[])
 static void handle_debounce(int argc, char *argv[])
 {
     const char *usage = "Usage: debounce <touch> [release]\n"
-                        "  touch, release: 0-255\n";
+                        "  touch, release: 0-7\n";
     if ((argc < 1) || (argc > 2)) {
         printf(usage);
         return;
@@ -300,7 +303,8 @@ static void handle_debounce(int argc, char *argv[])
         release = extract_non_neg_int(argv[1], 0);
     }
 
-    if ((touch < 0) || (release < 0)) {
+    if ((touch < 0) || (release < 0) ||
+        (touch > 7) || (release > 7)) {
         printf(usage);
         return;
     }
@@ -308,32 +312,9 @@ static void handle_debounce(int argc, char *argv[])
     chu_cfg->sense.debounce_touch = touch;
     chu_cfg->sense.debounce_release = release;
 
+    slider_update_config();
     config_changed();
     list_sense();
-}
-
-static void handle_baseline()
-{
-    printf("    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15| 16|\n");
-    printf("    -----------------------------------------------------------------\n");
-    printf("  A |");
-    for (int i = 0; i < 16; i++) {
-        printf("%3d|", slider_baseline(i * 2));
-    }
-    printf("\n  B |");
-    for (int i = 0; i < 16; i++) {
-        printf("%3d|", slider_baseline(i * 2 + 1));
-    }
-    printf("\n");
-    printf(" dA |");
-    for (int i = 0; i < 16; i++) {
-        printf("%3d|", slider_delta(i * 2));
-    }
-    printf("\n dB |");
-    for (int i = 0; i < 16; i++) {
-        printf("%3d|", slider_delta(i * 2 + 1));
-    }
-    printf("\n");
 }
 
 static void handle_save()
@@ -356,7 +337,6 @@ void cmd_init()
     register_command("tof", handle_tof);
     register_command("sense", handle_sense);
     register_command("debounce", handle_debounce);
-    register_command("baseline", handle_baseline);
     register_command("save", handle_save);
     register_command("factory", config_factory_reset);
 }

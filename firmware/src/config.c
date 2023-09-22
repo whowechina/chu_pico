@@ -30,8 +30,8 @@ static chu_cfg_t default_cfg = {
         .pitch = 18,
     },
     .sense = {
-        .debounce_touch = 1,
-        .debounce_release = 8,
+        .debounce_touch = 0,
+        .debounce_release = 1,
      },
     .hid = {
         .joy = 0x0f,
@@ -50,6 +50,22 @@ static void config_loaded()
     if ((chu_cfg->tof.offset < 40) ||
         (chu_cfg->tof.pitch < 4) || (chu_cfg->tof.pitch > 50)) {
         chu_cfg->tof = default_cfg.tof;
+        config_changed();
+    }
+    if ((chu_cfg->sense.global > 7) || (chu_cfg->sense.global < -7)) {
+        chu_cfg->sense.global = default_cfg.sense.global;
+        config_changed();
+    }
+    for (int i = 0; i < 32; i++) {
+        if ((chu_cfg->sense.keys[i] > 7) || (chu_cfg->sense.keys[i] < -7)) {
+            chu_cfg->sense.keys[i] = default_cfg.sense.keys[i];
+            config_changed();
+        }
+    }
+    if ((chu_cfg->sense.debounce_touch > 7) |
+        (chu_cfg->sense.debounce_release > 7)) {
+        chu_cfg->sense.debounce_touch = default_cfg.sense.debounce_touch;
+        chu_cfg->sense.debounce_release = default_cfg.sense.debounce_release;
         config_changed();
     }
 }

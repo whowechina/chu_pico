@@ -10,12 +10,8 @@
 #include <stdbool.h>
 
 void slider_init();
-int slider_value(unsigned key);
-int slider_baseline(unsigned key);
-int slider_delta(unsigned key);
-bool slider_touched(unsigned key);
-uint16_t slider_hw_touch(unsigned m);
 void slider_update();
-void slider_update_baseline();
+bool slider_touched(unsigned key);
+void slider_update_config();
 
 #endif
