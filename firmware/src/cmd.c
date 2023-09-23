@@ -15,7 +15,6 @@
 #define SENSE_LIMIT_MIN -7
 
 #define MAX_COMMANDS 20
-#define MAX_COMMAND_LENGTH 20
 #define MAX_PARAMETERS 5
 #define MAX_PARAMETER_LENGTH 20
 
@@ -23,32 +22,47 @@ const char *chu_prompt = "chu_pico>";
 
 typedef void (*cmd_handler_t)(int argc, char *argv[]);
 
-typedef struct {
-    char name[MAX_COMMAND_LENGTH];
-    cmd_handler_t handler;
-} command_t;
+static const char *commands[MAX_COMMANDS];
+static cmd_handler_t handlers[MAX_COMMANDS];
+static int num_commands = 0;
 
-command_t commands[MAX_COMMANDS];
-int num_commands = 0;
-
-static void register_command(char *name, cmd_handler_t handler)
+static void register_command(const char *cmd, cmd_handler_t handler)
 {
     if (num_commands < MAX_COMMANDS) {
-        strcpy(commands[num_commands].name, name);
-        commands[num_commands].handler = handler;
+        commands[num_commands] = cmd;
+        handlers[num_commands] = handler;
         num_commands++;
     }
+}
+
+// return -1 if not matched, return -2 if ambiguous
+static int match_prefix(const char *str[], int num, const char *prefix)
+{
+    int match = -1;
+    bool found = false;
+
+    for (int i = 0; (i < num) && str[i]; i++) {
+        if (strncmp(str[i], prefix, strlen(prefix)) == 0) {
+            if (found) {
+                return -2;
+            }
+            found = true;
+            match = i;
+        }
+    }
+
+    return match;
 }
 
 static void handle_help(int argc, char *argv[])
 {
     printf("Available commands:\n");
     for (int i = 0; i < num_commands; i++) {
-        printf("%s\n", commands[i].name);
+        printf("%s\n", commands[i]);
     }
 }
 
-static void list_colors()
+static void disp_colors()
 {
     printf("[Colors]\n");
     printf("  Key upper: %06x, lower: %06x, both: %06x, off: %06x\n", 
@@ -57,7 +71,7 @@ static void list_colors()
     printf("  Gap: %06x\n", chu_cfg->colors.gap);
 }
 
-static void list_style()
+static void disp_style()
 {
     printf("[Style]\n");
     printf("  Key: %d, Gap: %d, ToF: %d, Level: %d\n",
@@ -65,31 +79,31 @@ static void list_style()
            chu_cfg->style.tof, chu_cfg->style.level);
 }
 
-static void list_tof()
+static void disp_tof()
 {
     printf("[ToF]\n");
     printf("  Offset: %d, Pitch: %d\n", chu_cfg->tof.offset, chu_cfg->tof.pitch);
 }
 
-static void list_sense()
+static void disp_sense()
 {
     printf("[Sense]\n");
-    printf("  Global: %d, debounce (touch, release): %d, %d\n", chu_cfg->sense.global,
+    printf("  Global: %+d, debounce (touch, release): %d, %d\n", chu_cfg->sense.global,
            chu_cfg->sense.debounce_touch, chu_cfg->sense.debounce_release);
     printf("    | 1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|13|14|15|16|\n");
-    printf("    -------------------------------------------------\n");
+    printf("  ---------------------------------------------------\n");
     printf("  A |");
     for (int i = 0; i < 16; i++) {
-        printf("%2d|", chu_cfg->sense.keys[i * 2]);
+        printf("%+2d|", chu_cfg->sense.keys[i * 2]);
     }
     printf("\n  B |");
     for (int i = 0; i < 16; i++) {
-        printf("%2d|", chu_cfg->sense.keys[i * 2 + 1]);
+        printf("%+2d|", chu_cfg->sense.keys[i * 2 + 1]);
     }
     printf("\n");
 }
 
-static void list_hid()
+static void disp_hid()
 {
     printf("[HID]\n");
     printf("  Joy: %s, NKRO: %s.\n", 
@@ -97,35 +111,43 @@ static void list_hid()
            chu_cfg->hid.nkro ? "on" : "off" );
 }
 
-void handle_list(int argc, char *argv[])
+void handle_display(int argc, char *argv[])
 {
-    const char *usage = "Usage: list [colors|style|tof|sense|hid]\n";
+    const char *usage = "Usage: display [colors|style|tof|sense|hid]\n";
     if (argc > 1) {
         printf(usage);
         return;
     }
 
     if (argc == 0) {
-        list_colors();
-        list_style();
-        list_tof();
-        list_sense();
-        list_hid();
+        disp_colors();
+        disp_style();
+        disp_tof();
+        disp_sense();
+        disp_hid();
         return;
     }
 
-    if (strcmp(argv[0], "colors") == 0) {
-        list_colors();
-    } else if (strcmp(argv[0], "style") == 0) {
-        list_style();
-    } else if (strcmp(argv[0], "tof") == 0) {
-        list_tof();
-    } else if (strcmp(argv[0], "sense") == 0) {
-        list_sense();
-    } else if (strcmp(argv[0], "hid") == 0) {
-        list_hid();
-    } else {
-        printf(usage);
+    const char *choices[] = {"colors", "style", "tof", "sense", "hid"};
+    switch (match_prefix(choices, 5, argv[0])) {
+        case 0:
+            disp_colors();
+            break;
+        case 1:
+            disp_style();
+            break;
+        case 2:
+            disp_tof();
+            break;
+        case 3:
+            disp_sense();
+            break;
+        case 4:
+            disp_hid();
+            break;
+        default:
+            printf(usage);
+            break;
     }
 }
 
@@ -153,26 +175,23 @@ static void handle_fps(int argc, char *argv[])
 
 static void handle_hid(int argc, char *argv[])
 {
-    const char *usage = "Usage: hid <joy|nkro>\n";
+    const char *usage = "Usage: hid <joy|nkro|both>\n";
     if (argc != 1) {
         printf(usage);
         return;
     }
 
-    if (strcmp(argv[0], "joy") == 0) {
-        chu_cfg->hid.joy = 1;
-        chu_cfg->hid.nkro = 0;
-    } else if (strcmp(argv[0], "nkro") == 0) {
-        chu_cfg->hid.joy = 0;
-        chu_cfg->hid.nkro = 1;
-    } else if (strcmp(argv[0], "both") == 0) {
-        chu_cfg->hid.joy = 1;
-        chu_cfg->hid.nkro = 1;
-    } else {
+    const char *choices[] = {"joy", "nkro", "both"};
+    int match = match_prefix(choices, 3, argv[0]);
+    if (match < 0) {
         printf(usage);
         return;
     }
+
+    chu_cfg->hid.joy = ((match == 0) || (match == 2)) ? 1 : 0;
+    chu_cfg->hid.nkro = ((match == 1) || (match == 2)) ? 1 : 0;
     config_changed();
+    disp_hid();
 }
 
 static int extract_non_neg_int(const char *param, int len)
@@ -218,7 +237,7 @@ static void handle_tof(int argc, char *argv[])
     chu_cfg->tof.pitch = pitch;
 
     config_changed();
-    list_tof();
+    disp_tof();
 }
 
 static uint8_t *extract_key(const char *param)
@@ -282,7 +301,7 @@ static void handle_sense(int argc, char *argv[])
 
     slider_update_config();
     config_changed();
-    list_sense();
+    disp_sense();
 }
 
 static void handle_debounce(int argc, char *argv[])
@@ -314,7 +333,7 @@ static void handle_debounce(int argc, char *argv[])
 
     slider_update_config();
     config_changed();
-    list_sense();
+    disp_sense();
 }
 
 static void handle_save()
@@ -331,7 +350,7 @@ static void handle_factory_reset()
 void cmd_init()
 {
     register_command("?", handle_help);
-    register_command("list", handle_list);
+    register_command("display", handle_display);
     register_command("fps", handle_fps);
     register_command("hid", handle_hid);
     register_command("tof", handle_tof);
@@ -346,24 +365,28 @@ static int cmd_len = 0;
 
 static void process_cmd()
 {
-    char *command;
     char *argv[MAX_PARAMETERS];
     int argc;
 
-    command = strtok(cmd_buf, " \n");
+    char *cmd = strtok(cmd_buf, " \n");
     argc = 0;
     while ((argc < MAX_PARAMETERS) &&
            (argv[argc] = strtok(NULL, " \n")) != NULL) {
         argc++;
     }
 
-    for (int i = 0; i < num_commands; i++) {
-        if (strcmp(commands[i].name, command) == 0) {
-            commands[i].handler(argc, argv);
-            printf("\n");
-            break;
-        }
+    int match = match_prefix(commands, num_commands, cmd);
+    if (match == -2) {
+        printf("Ambiguous command.\n");
+        return;
     }
+    if (match == -1) {
+        printf("Unknown command.\n");
+        handle_help(0, NULL);
+        return;
+    }
+
+    handlers[match](argc, argv);
 }
 
 void cmd_run()
