@@ -11,8 +11,8 @@
 #include "slider.h"
 #include "save.h"
 
-#define SENSE_LIMIT_MAX 7
-#define SENSE_LIMIT_MIN -7
+#define SENSE_LIMIT_MAX 9
+#define SENSE_LIMIT_MIN -9
 
 #define MAX_COMMANDS 20
 #define MAX_PARAMETERS 5
