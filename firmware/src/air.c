@@ -48,9 +48,7 @@ void air_init()
             vl53l0x_init_tof(true);
             vl53l0x_start_continuous(0);
         } else if (tof_model[i] == 2) {
-            gp2y0e_write(I2C_PORT, 0xa8, 0); // Accumulation 0:1, 1:5, 2:30, 3:10
-            gp2y0e_write(I2C_PORT, 0x3f, 0x30); // Filter 0x00:7, 0x10:5, 0x20:9, 0x30:1
-            gp2y0e_write(I2C_PORT, 0x13, 5); // Pulse [3..7]:[40, 80, 160, 240, 320] us
+            gp2y03_init(I2C_PORT);
         }
     }
 }
@@ -113,8 +111,16 @@ void air_update()
         if (tof_model[i] == 1) {
             distances[i] = readRangeContinuousMillimeters() * 10;
         } else if (tof_model[i] == 2) {
-            distances[i] = gp2y0e_dist16(I2C_PORT);
+            /* compensation based on observation, don't know why*/
+            distances[i] = gp2y0e_dist16(I2C_PORT) * 16 / 10;
         }
     }
 }
 
+uint16_t air_raw(uint8_t index)
+{
+    if (index >= sizeof(TOF_LIST)) {
+        return 0;
+    }
+    return distances[index];
+}

@@ -8,6 +8,7 @@
 #include "pico/stdlib.h"
 
 #include "config.h"
+#include "air.h"
 #include "slider.h"
 #include "save.h"
 
@@ -216,8 +217,17 @@ static void handle_tof(int argc, char *argv[])
     const char *usage = "Usage: tof <offset> [pitch]\n"
                         "  offset: 40..255\n"
                         "  pitch: 4..50\n";
-    if ((argc < 1) || (argc > 2)) {
+    if (argc > 2) {
         printf(usage);
+        return;
+    }
+
+    if (argc == 0) {
+        printf("TOF: ");
+        for (int i = air_num(); i > 0; i--) {
+            printf(" %4d", air_raw(i - 1) / 10);
+        }
+        printf("\n");
         return;
     }
 
@@ -410,6 +420,11 @@ static void process_cmd()
     int argc;
 
     char *cmd = strtok(cmd_buf, " \n");
+
+    if (strlen(cmd) == 0) {
+        return;
+    }
+
     argc = 0;
     while ((argc < MAX_PARAMETERS) &&
            (argv[argc] = strtok(NULL, " \n")) != NULL) {
