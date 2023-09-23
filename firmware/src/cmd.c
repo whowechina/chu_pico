@@ -88,8 +88,8 @@ static void disp_tof()
 static void disp_sense()
 {
     printf("[Sense]\n");
-    printf("  Global: %+d, debounce (touch, release): %d, %d\n", chu_cfg->sense.global,
-           chu_cfg->sense.debounce_touch, chu_cfg->sense.debounce_release);
+    printf("  Filter: %d, %d\n", chu_cfg->sense.filter >> 4, chu_cfg->sense.filter & 0xf);
+    printf("  Sensitivity (global: %+d):\n", chu_cfg->sense.global);
     printf("    | 1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|13|14|15|16|\n");
     printf("  ---------------------------------------------------\n");
     printf("  A |");
@@ -101,6 +101,8 @@ static void disp_sense()
         printf("%+2d|", chu_cfg->sense.keys[i * 2 + 1]);
     }
     printf("\n");
+    printf("  Debounce (touch, release): %d, %d\n",
+           chu_cfg->sense.debounce_touch, chu_cfg->sense.debounce_release);
 }
 
 static void disp_hid()
@@ -212,8 +214,8 @@ static int extract_non_neg_int(const char *param, int len)
 static void handle_tof(int argc, char *argv[])
 {
     const char *usage = "Usage: tof <offset> [pitch]\n"
-                        "  offset: 40-255\n"
-                        "  pitch: 4-50\n";
+                        "  offset: 40..255\n"
+                        "  pitch: 4..50\n";
     if ((argc < 1) || (argc > 2)) {
         printf(usage);
         return;
@@ -240,6 +242,30 @@ static void handle_tof(int argc, char *argv[])
     disp_tof();
 }
 
+static void handle_filter(int argc, char *argv[])
+{
+    const char *usage = "Usage: filter <first> <second>\n"
+                        "  first, second: 0..3\n";
+    if ((argc < 2) || (argc > 2)) {
+        printf(usage);
+        return;
+    }
+
+    int ffi = extract_non_neg_int(argv[0], 0);
+    int sfi = extract_non_neg_int(argv[1], 0);
+
+    if ((ffi < 0) || (ffi > 3) || (sfi < 0) || (sfi > 3)) {
+        printf(usage);
+        return;
+    }
+
+    chu_cfg->sense.filter = (ffi << 4) | sfi;
+
+    slider_update_config();
+    config_changed();
+    disp_sense();
+}
+
 static uint8_t *extract_key(const char *param)
 {
     int len = strlen(param);
@@ -261,42 +287,56 @@ static uint8_t *extract_key(const char *param)
     return &chu_cfg->sense.keys[id * 2 + offset];
 }
 
+static void sense_do_op(int8_t *target, char op)
+{
+    if (op == '+') {
+        if (*target < SENSE_LIMIT_MAX) {
+            (*target)++;
+        }
+    } else if (op == '-') {
+        if (*target > SENSE_LIMIT_MIN) {
+            (*target)--;
+        }
+    } else if (op == '0') {
+        *target = 0;
+    }
+}
+
 static void handle_sense(int argc, char *argv[])
 {
-    const char *usage = "Usage: sense [key] <+|-|0>\n"
+    const char *usage = "Usage: sense [key|*] <+|-|0>\n"
                         "Example:\n"
                         "  >sense +\n"
                         "  >sense -\n"
                         "  >sense 1A +\n"
-                        "  >sense 13B 0\n";
+                        "  >sense 13B -\n";
+                        "  >sense * 0\n";
     if ((argc < 1) || (argc > 2)) {
         printf(usage);
         return;
     }
 
-    int8_t *target = &chu_cfg->sense.global;
     const char *op = argv[argc - 1];
-    if (argc == 2) {
-        target = extract_key(argv[0]);
-        if (!target) {
-            printf(usage);
-            return;
-        }
-    }
-
-    if (strcmp(op, "+") == 0) {
-        if (*target < SENSE_LIMIT_MAX) {
-            (*target)++;
-        }
-    } else if (strcmp(op, "-") == 0) {
-        if (*target > SENSE_LIMIT_MIN) {
-            (*target)--;
-        }
-    } else if (strcmp(op, "0") == 0) {
-        *target = 0;
-    } else {
+    if ((strlen(op) != 1) || !strchr("+-0", op[0])) {
         printf(usage);
         return;
+    }
+
+    if (argc == 1) {
+        sense_do_op(&chu_cfg->sense.global, op[0]);
+    } else {
+        if (strcmp(argv[0], "*") == 0) {
+            for (int i = 0; i < 32; i++) {
+                sense_do_op(&chu_cfg->sense.keys[i], op[0]);
+            }
+        } else {
+            uint8_t *key = extract_key(argv[0]);
+            if (!key) {
+                printf(usage);
+                return;
+            }
+            sense_do_op(key, op[0]);
+        }
     }
 
     slider_update_config();
@@ -307,7 +347,7 @@ static void handle_sense(int argc, char *argv[])
 static void handle_debounce(int argc, char *argv[])
 {
     const char *usage = "Usage: debounce <touch> [release]\n"
-                        "  touch, release: 0-7\n";
+                        "  touch, release: 0..7\n";
     if ((argc < 1) || (argc > 2)) {
         printf(usage);
         return;
@@ -354,6 +394,7 @@ void cmd_init()
     register_command("fps", handle_fps);
     register_command("hid", handle_hid);
     register_command("tof", handle_tof);
+    register_command("filter", handle_filter);
     register_command("sense", handle_sense);
     register_command("debounce", handle_debounce);
     register_command("save", handle_save);

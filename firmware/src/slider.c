@@ -63,5 +63,7 @@ void slider_update_config()
         mpr121_debounce(MPR121_ADDR + m, chu_cfg->sense.debounce_touch,
                                          chu_cfg->sense.debounce_release);
         mpr121_sense(MPR121_ADDR + m, chu_cfg->sense.global, chu_cfg->sense.keys + m * 12);
+        mpr121_filter(MPR121_ADDR + m, chu_cfg->sense.filter & 0x0f,
+                                       (chu_cfg->sense.filter >> 4) & 0x0f);
     }
 }

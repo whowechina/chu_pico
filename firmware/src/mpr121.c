@@ -165,10 +165,17 @@ static uint8_t mpr121_resume(uint8_t addr, uint8_t ecr)
     write_reg(addr, MPR121_ELECTRODE_CONFIG_REG, ecr);
 }
 
-void mpr121_debounce(uint8_t addr, uint8_t touch, uint8_t release)
+void mpr121_filter(uint8_t addr, uint8_t ffi, uint8_t sfi)
 {
     uint8_t ecr = mpr121_stop(addr);
-    write_reg(addr, 0x5B, (release & 0x07) << 4 | (touch & 0x07));
+
+    uint8_t afe = read_reg(addr, MPR121_AFE_CONFIG_REG);
+    write_reg(addr, MPR121_AFE_CONFIG_REG, (afe & 0x3f) | ffi << 6);
+    uint8_t acc = read_reg(addr, MPR121_AUTOCONFIG_CONTROL_0_REG);
+    write_reg(addr, MPR121_AUTOCONFIG_CONTROL_0_REG, (acc & 0x3f) | ffi << 6);
+    uint8_t fcr = read_reg(addr, MPR121_FILTER_CONFIG_REG);
+    write_reg(addr, MPR121_FILTER_CONFIG_REG, (fcr & 0xe7) | (sfi & 3) << 3);
+
     mpr121_resume(addr, ecr);
 }
 
@@ -182,5 +189,12 @@ void mpr121_sense(uint8_t addr, int8_t sense, int8_t *sense_keys)
         write_reg(addr, MPR121_RELEASE_THRESHOLD_REG + i * 2,
                         RELEASE_THRESHOLD_BASE - delta / 2);
     }
+    mpr121_resume(addr, ecr);
+}
+
+void mpr121_debounce(uint8_t addr, uint8_t touch, uint8_t release)
+{
+    uint8_t ecr = mpr121_stop(addr);
+    write_reg(addr, 0x5B, (release & 0x07) << 4 | (touch & 0x07));
     mpr121_resume(addr, ecr);
 }

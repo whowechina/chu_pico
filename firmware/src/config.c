@@ -52,6 +52,11 @@ static void config_loaded()
         chu_cfg->tof = default_cfg.tof;
         config_changed();
     }
+    if ((chu_cfg->sense.filter & 0x0f) > 3 ||
+        ((chu_cfg->sense.filter >> 4) & 0x0f) > 3) {
+        chu_cfg->sense.filter = default_cfg.sense.filter;
+        config_changed();
+    }
     if ((chu_cfg->sense.global > 7) || (chu_cfg->sense.global < -7)) {
         chu_cfg->sense.global = default_cfg.sense.global;
         config_changed();
