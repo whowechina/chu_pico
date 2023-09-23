@@ -138,6 +138,7 @@ static void core1_loop()
 {
     while (1) {
         if (mutex_try_enter(&core1_io_lock, NULL)) {
+            run_lights();
             rgb_update();
             mutex_exit(&core1_io_lock);
         }
@@ -160,8 +161,6 @@ static void core0_loop()
         gen_nkro_report();
         report_usb_hid();
         tud_task();
-
-        run_lights();
     }
 }
 

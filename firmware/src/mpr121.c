@@ -13,7 +13,7 @@
 #define IO_TIMEOUT_US 1000
 
 #define TOUCH_THRESHOLD_BASE 17
-#define RELEASE_THRESHOLD_BASE 10
+#define RELEASE_THRESHOLD_BASE 12
 
 #define MPR121_TOUCH_STATUS_REG 0x00
 #define MPR121_OUT_OF_RANGE_STATUS_0_REG 0x02
@@ -89,7 +89,7 @@ void mpr121_init(uint8_t i2c_addr)
     write_reg(i2c_addr, 0x2F, 0x01); // Max half delta Falling 
     write_reg(i2c_addr, 0x30, 0x01); // Noise half delta Falling 
     write_reg(i2c_addr, 0x31, 0xFF); // Noise count limit Falling 
-    write_reg(i2c_addr, 0x32, 0x0); // Delay limit Falling
+    write_reg(i2c_addr, 0x32, 0x0F); // Delay limit Falling
 
     //touched: baseline keep 
     write_reg(i2c_addr, 0x33, 0x00); // Noise half delta Touched 
@@ -97,7 +97,7 @@ void mpr121_init(uint8_t i2c_addr)
     write_reg(i2c_addr, 0x35, 0x00); // Delay limit Touched 
 
     //Touch pad threshold 
-    for (uint8_t i=0; i<12; i++) {
+    for (int i = 0; i < 12; i++) {
         write_reg(i2c_addr, 0x41 + i * 2, TOUCH_THRESHOLD_BASE);
         write_reg(i2c_addr, 0x42 + i * 2, RELEASE_THRESHOLD_BASE);
     }
@@ -106,12 +106,12 @@ void mpr121_init(uint8_t i2c_addr)
     write_reg(i2c_addr, 0x5B, 0x00);
 
     //AFE and filter configuration 
-    write_reg(i2c_addr, 0x5C, 0b01010000); // AFES=6 samples, same as AFES in 0x7B, Global CDC=16uA 
+    write_reg(i2c_addr, 0x5C, 0b00010000); // AFES=6 samples, same as AFES in 0x7B, Global CDC=16uA 
     write_reg(i2c_addr, 0x5D, 0b00101000); // CT=0.5us, TDS=4samples, TDI=16ms 
     write_reg(i2c_addr, 0x5E, 0x80); // Set baseline calibration enabled, baseline loading 5MSB 
 
     //Auto Configuration 
-    write_reg(i2c_addr, 0x7B, 0b01001001); // AFES=6 samples, same as AFES in 0x5C 
+    write_reg(i2c_addr, 0x7B, 0b00001011); // AFES=6 samples, same as AFES in 0x5C 
     // retry=2b00, no retry, 
     // BVA=2b10, load 5MSB after AC, 
     // ARE/ACE=2b11, auto configuration enabled 
