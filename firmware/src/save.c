@@ -29,7 +29,7 @@ static int module_num = 0;
 
 static uint32_t my_magic = 0xcafecafe;
 
-#define SAVE_TIMEOUT_US 30000000
+#define SAVE_TIMEOUT_US 5000000
 
 #define SAVE_SECTOR_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE)
 
@@ -55,7 +55,7 @@ static void save_program()
     data_page = (data_page + 1) % (FLASH_SECTOR_SIZE / FLASH_PAGE_SIZE);
     printf("\nProgram Flash %d %8lx\n", data_page, old_data.magic);
     if (mutex_enter_timeout_us(io_lock, 100000)) {
-        sleep_ms(5); /* wait for all io operations to finish */
+        sleep_ms(10); /* wait for all io operations to finish */
         uint32_t ints = save_and_disable_interrupts();
         if (data_page == 0) {
             flash_range_erase(SAVE_SECTOR_OFFSET, FLASH_SECTOR_SIZE);
