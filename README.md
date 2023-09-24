@@ -44,8 +44,15 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
   https://www.lcsc.com/product-detail/Light-Emitting-Diodes-LED_Worldsemi-WS2812B-4020_C965557.html
 * TCA9548APWR (TSSOP-24) I2C multiplexer.  
   https://www.lcsc.com/product-detail/Signal-Switches-Encoders-Decoders-Multiplexers_Texas-Instruments-TCA9548APWR_C130026.html
-* 3x MPR121 modules, there're many types in the market, choose ones like this, and remember to **cut (unshort) the ADDR pin** which is short by default:  
-  https://www.sparkfun.com/products/retired/9695
+* 3x MPR121 modules, there're many types in the market, choose ones like this, and remember to **cut (unshort) the ADDR pin** which is short by default.    
+  https://www.sparkfun.com/products/retired/9695  
+  There's not enough space for the whole height of MPR121 module plus the lead pads. So you need to solder the module like the picture shows below.  
+  First apply some insulation tape.  
+  <img src="doc/mpr121_solder1.jpg" width="60%">  
+  Then solder the module directly against the PCB.  
+  <img src="doc/mpr121_solder2.jpg" width="60%">  
+  You can use the pins comes with the module, but you need to cut away the plastic pads.  
+  <img src="doc/mpr121_solder3.jpg" width="60%">
 * 5x Sharp GP2Y0E03 ToF sensors, buy ones that equipped with cables.  
   https://www.lcsc.com/product-detail/Angle-Linear-Position-Sensors_Sharp-Microelectronics-GP2Y0E03_C920270.html
   <img src="doc/gp2y0e03_solder.jpg" width="90%">
