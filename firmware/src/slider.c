@@ -22,11 +22,9 @@
 
 #define MPR121_ADDR 0x5A
 
-static uint16_t baseline[36];
-static int16_t error[36];
 static uint16_t readout[36];
-static bool touched[36];
 static uint16_t touch[3];
+static unsigned touch_count[36];
 
 void slider_init()
 {
@@ -44,9 +42,21 @@ void slider_init()
 
 void slider_update()
 {
+    static uint16_t last_touched[3];
+
     touch[0] = mpr121_touched(MPR121_ADDR);
     touch[1] = mpr121_touched(MPR121_ADDR + 1);
     touch[2] = mpr121_touched(MPR121_ADDR + 2);
+
+    for (int m = 0; m < 3; m++) {
+        uint16_t just_touched = touch[m] & ~last_touched[m];
+        last_touched[m] = touch[m];
+        for (int i = 0; i < 12; i++) {
+            if (just_touched & (1 << i)) {
+                touch_count[m * 12 + i]++;
+            }
+        }
+    }
 }
 
 const uint16_t *slider_raw()
@@ -63,6 +73,19 @@ bool slider_touched(unsigned key)
         return 0;
     }
     return touch[key / 12] & (1 << (key % 12));
+}
+
+unsigned slider_count(unsigned key)
+{
+    if (key >= 32) {
+        return 0;
+    }
+    return touch_count[key];
+}
+
+void slider_reset_stat()
+{
+    memset(touch_count, 0, sizeof(touch_count));
 }
 
 void slider_update_config()

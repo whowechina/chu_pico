@@ -64,6 +64,8 @@ static int match_prefix(const char *str[], int num, const char *prefix)
 
 static void handle_help(int argc, char *argv[])
 {
+    printf("\n   << Chu Pico Controller >>\n");
+    printf(" https://github.com/whowechina\n\n");
     printf("Available commands:\n");
     for (int i = 0; i < num_commands; i++) {
         printf("%*s: %s\n", max_cmd_len + 2, commands[i], helps[i]);
@@ -181,6 +183,28 @@ void fps_count(int core)
 static void handle_fps(int argc, char *argv[])
 {
     printf("FPS: core 0: %d, core 1: %d\n", fps[0], fps[1]);
+}
+
+static void handle_stat(int argc, char *argv[])
+{
+    if (argc == 0) {
+        for (int col = 0; col < 4; col++) {
+            printf(" %2dA |", col * 4 + 1);
+            for (int i = 0; i < 4; i++) {
+                printf("%6u|", slider_count(col * 8 + i * 2));
+            }
+            printf("\n   B |");
+            for (int i = 0; i < 4; i++) {
+                printf("%6u|", slider_count(col * 8 + i * 2 + 1));
+            }
+            printf("\n");
+        }
+    } else if ((argc == 1) &&
+               (strncasecmp(argv[0], "reset", strlen(argv[0])) == 0)) {
+        slider_reset_stat();
+    } else {
+        printf("Usage: stat [reset]\n");
+    }
 }
 
 static void handle_hid(int argc, char *argv[])
@@ -424,6 +448,7 @@ void cmd_init()
     register_command("?", handle_help, "Display this help message.");
     register_command("display", handle_display, "Display all config.");
     register_command("fps", handle_fps, "Display FPS.");
+    register_command("stat", handle_stat, "Display or reset statistics.");
     register_command("hid", handle_hid, "Set HID mode.");
     register_command("tof", handle_tof, "Set ToF config.");
     register_command("filter", handle_filter, "Set pre-filter config.");
