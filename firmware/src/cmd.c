@@ -24,15 +24,22 @@ const char *chu_prompt = "chu_pico>";
 typedef void (*cmd_handler_t)(int argc, char *argv[]);
 
 static const char *commands[MAX_COMMANDS];
+static const char *helps[MAX_COMMANDS];
 static cmd_handler_t handlers[MAX_COMMANDS];
+static int max_cmd_len = 0;
+
 static int num_commands = 0;
 
-static void register_command(const char *cmd, cmd_handler_t handler)
+static void register_command(const char *cmd, cmd_handler_t handler, const char *help)
 {
     if (num_commands < MAX_COMMANDS) {
         commands[num_commands] = cmd;
         handlers[num_commands] = handler;
+        helps[num_commands] = help;
         num_commands++;
+        if (strlen(cmd) > max_cmd_len) {
+            max_cmd_len = strlen(cmd);
+        }
     }
 }
 
@@ -43,7 +50,7 @@ static int match_prefix(const char *str[], int num, const char *prefix)
     bool found = false;
 
     for (int i = 0; (i < num) && str[i]; i++) {
-        if (strncmp(str[i], prefix, strlen(prefix)) == 0) {
+        if (strncasecmp(str[i], prefix, strlen(prefix)) == 0) {
             if (found) {
                 return -2;
             }
@@ -59,7 +66,7 @@ static void handle_help(int argc, char *argv[])
 {
     printf("Available commands:\n");
     for (int i = 0; i < num_commands; i++) {
-        printf("%s\n", commands[i]);
+        printf("%*s: %s\n", max_cmd_len + 2, commands[i], helps[i]);
     }
 }
 
@@ -399,16 +406,16 @@ static void handle_factory_reset()
 
 void cmd_init()
 {
-    register_command("?", handle_help);
-    register_command("display", handle_display);
-    register_command("fps", handle_fps);
-    register_command("hid", handle_hid);
-    register_command("tof", handle_tof);
-    register_command("filter", handle_filter);
-    register_command("sense", handle_sense);
-    register_command("debounce", handle_debounce);
-    register_command("save", handle_save);
-    register_command("factory", config_factory_reset);
+    register_command("?", handle_help, "Display this help message.");
+    register_command("display", handle_display, "Display all config.");
+    register_command("fps", handle_fps, "Display FPS.");
+    register_command("hid", handle_hid, "Set HID mode.");
+    register_command("tof", handle_tof, "Set ToF config.");
+    register_command("filter", handle_filter, "Set pre-filter config.");
+    register_command("sense", handle_sense, "Set sensitivity config.");
+    register_command("debounce", handle_debounce, "Set debounce config.");
+    register_command("save", handle_save, "Save config to flash.");
+    register_command("factory", config_factory_reset, "Reset everything to default.");
 }
 
 static char cmd_buf[256];

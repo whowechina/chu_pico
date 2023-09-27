@@ -150,6 +150,8 @@ static void core1_loop()
 static void core0_loop()
 {
     while(1) {
+        tud_task();
+
         cmd_run();
         save_loop();
         fps_count(0);
@@ -160,13 +162,12 @@ static void core0_loop()
         gen_joy_report();
         gen_nkro_report();
         report_usb_hid();
-        tud_task();
     }
 }
 
 void init()
 {
-    sleep_ms(100);
+    sleep_ms(50);
     set_sys_clock_khz(150000, true);
     board_init();
     tusb_init();
