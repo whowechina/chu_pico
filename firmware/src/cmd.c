@@ -500,7 +500,16 @@ void cmd_run()
         return;
     }
 
+    if (c == '\b' || c == 127) { // both backspace and delete
+        if (cmd_len > 0) {
+            cmd_len--;
+            printf("\b \b");
+        }
+        return;
+    }
+
     if ((c != '\n') && (c != '\r')) {
+
         if (cmd_len < sizeof(cmd_buf) - 2) {
             cmd_buf[cmd_len] = c;
             printf("%c", c);
@@ -508,6 +517,7 @@ void cmd_run()
         }
         return;
     }
+
 
     cmd_buf[cmd_len] = '\0';
     cmd_len = 0;
