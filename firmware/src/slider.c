@@ -49,6 +49,14 @@ void slider_update()
     touch[2] = mpr121_touched(MPR121_ADDR + 2);
 }
 
+const uint16_t *slider_raw()
+{
+    mpr121_raw(MPR121_ADDR, readout, 12);
+    mpr121_raw(MPR121_ADDR + 1, readout + 12, 12);
+    mpr121_raw(MPR121_ADDR + 2, readout + 24, 12);
+    return readout;
+}
+
 bool slider_touched(unsigned key)
 {
     if (key >= 32) {

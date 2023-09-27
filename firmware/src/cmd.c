@@ -393,6 +393,21 @@ static void handle_debounce(int argc, char *argv[])
     disp_sense();
 }
 
+static void handle_raw()
+{
+    printf("Key raw readings:\n");
+    const uint16_t *raw = slider_raw();
+    printf("|");
+    for (int i = 0; i < 16; i++) {
+        printf("%3d|", raw[i * 2]);
+    }
+    printf("\n|");
+    for (int i = 0; i < 16; i++) {
+        printf("%3d|", raw[i * 2 + 1]);
+    }
+    printf("\n");
+}
+
 static void handle_save()
 {
     save_request(true);
@@ -414,6 +429,7 @@ void cmd_init()
     register_command("filter", handle_filter, "Set pre-filter config.");
     register_command("sense", handle_sense, "Set sensitivity config.");
     register_command("debounce", handle_debounce, "Set debounce config.");
+    register_command("raw", handle_raw, "Show key raw readings.");
     register_command("save", handle_save, "Save config to flash.");
     register_command("factory", config_factory_reset, "Reset everything to default.");
 }
