@@ -23,7 +23,7 @@ static chu_cfg_t default_cfg = {
         .key = 0,
         .gap = 0,
         .tof = 0,
-        .level = 7,
+        .level = 127,
     },
     .tof = {
         .offset = 100,

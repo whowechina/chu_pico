@@ -187,6 +187,40 @@ static void handle_fps(int argc, char *argv[])
     printf("FPS: core 0: %d, core 1: %d\n", fps[0], fps[1]);
 }
 
+static int extract_non_neg_int(const char *param, int len)
+{
+    if (len == 0) {
+        len = strlen(param);
+    }
+    int result = 0;
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(param[i])) {
+            return -1;
+        }
+        result = result * 10 + param[i] - '0';
+    }
+    return result;
+}
+
+static void handle_level(int argc, char *argv[])
+{
+    const char *usage = "Usage: level <0..255>\n";
+    if (argc != 1) {
+        printf(usage);
+        return;
+    }
+
+    int level = extract_non_neg_int(argv[0], 0);
+    if ((level < 0) || (level > 255)) {
+        printf(usage);
+        return;
+    }
+
+    chu_cfg->style.level = level;
+    config_changed();
+    disp_style();
+}
+
 static void handle_stat(int argc, char *argv[])
 {
     if (argc == 0) {
@@ -228,21 +262,6 @@ static void handle_hid(int argc, char *argv[])
     chu_cfg->hid.nkro = ((match == 1) || (match == 2)) ? 1 : 0;
     config_changed();
     disp_hid();
-}
-
-static int extract_non_neg_int(const char *param, int len)
-{
-    if (len == 0) {
-        len = strlen(param);
-    }
-    int result = 0;
-    for (int i = 0; i < len; i++) {
-        if (!isdigit(param[i])) {
-            return -1;
-        }
-        result = result * 10 + param[i] - '0';
-    }
-    return result;
 }
 
 static void handle_tof(int argc, char *argv[])
@@ -457,6 +476,7 @@ void cmd_init()
     register_command("?", handle_help, "Display this help message.");
     register_command("display", handle_display, "Display all config.");
     register_command("fps", handle_fps, "Display FPS.");
+    register_command("level", handle_level, "Set LED brightness level.");
     register_command("stat", handle_stat, "Display or reset statistics.");
     register_command("hid", handle_hid, "Set HID mode.");
     register_command("tof", handle_tof, "Set ToF config.");

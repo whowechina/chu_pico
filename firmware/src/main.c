@@ -119,11 +119,8 @@ static void run_lights()
     }
 
     for (int i = 0; i < 15; i++) {
-        int x = 15 - i;
-        uint8_t r = (x & 0x01) ? 10 : 0;
-        uint8_t g = (x & 0x02) ? 10 : 0;
-        uint8_t b = (x & 0x04) ? 10 : 0;
-        rgb_gap_color(i, rgb32(r, g, b, false));
+        uint32_t color = rgb32_from_hsv(i * 573 / 15, 255, 16);
+        rgb_gap_color(i, color);
     }
 
     for (int i = 0; i < 16; i++) {

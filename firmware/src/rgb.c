@@ -52,6 +52,37 @@ uint32_t rgb32(uint32_t r, uint32_t g, uint32_t b, bool gamma_fix)
 #endif
 }
 
+uint32_t rgb32_from_hsv(uint8_t h, uint8_t s, uint8_t v)
+{
+    uint32_t region, remainder, p, q, t;
+
+    if (s == 0) {
+        return v << 16 | v << 8 | v;
+    }
+
+    region = h / 43;
+    remainder = (h % 43) * 6;
+
+    p = (v * (255 - s)) >> 8;
+    q = (v * (255 - ((s * remainder) >> 8))) >> 8;
+    t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
+
+    switch (region) {
+        case 0:
+            return v << 16 | t << 8 | p;
+        case 1:
+            return q << 16 | v << 8 | p;
+        case 2:
+            return p << 16 | v << 8 | t;
+        case 3:
+            return p << 16 | q << 8 | v;
+        case 4:
+            return t << 16 | p << 8 | v;
+        default:
+            return v << 16 | p << 8 | q;
+    }
+}
+
 static void drive_led()
 {
     static uint64_t last = 0;
@@ -80,12 +111,25 @@ void rgb_set_colors(const uint32_t *colors, unsigned index, size_t num)
     memcpy(&rgb_buf[index], colors, num * sizeof(*colors));
 }
 
+static inline uint32_t apply_level(uint32_t color)
+{
+    unsigned r = (color >> 16) & 0xff;
+    unsigned g = (color >> 8) & 0xff;
+    unsigned b = color & 0xff;
+
+    r = r * chu_cfg->style.level / 255;
+    g = g * chu_cfg->style.level / 255;
+    b = b * chu_cfg->style.level / 255;
+
+    return r << 16 | g << 8 | b;
+}
+
 void rgb_set_color(unsigned index, uint32_t color)
 {
     if (index >= ARRAY_SIZE(rgb_buf)) {
         return;
     }
-    rgb_buf[index] = color;
+    rgb_buf[index] = apply_level(color);
 }
 
 void rgb_key_color(unsigned index, uint32_t color)
@@ -93,7 +137,7 @@ void rgb_key_color(unsigned index, uint32_t color)
     if (index > 16) {
         return;
     }
-    rgb_buf[index * 2] = color;
+    rgb_buf[index * 2] = apply_level(color);
 }
 
 void rgb_gap_color(unsigned index, uint32_t color)
@@ -101,7 +145,7 @@ void rgb_gap_color(unsigned index, uint32_t color)
     if (index > 15) {
         return;
     }
-    rgb_buf[index * 2 + 1] = color;
+    rgb_buf[index * 2 + 1] = apply_level(color);
 }
 
 void rgb_set_brg(unsigned index, const uint8_t *brg_array, size_t num)
@@ -116,10 +160,9 @@ void rgb_set_brg(unsigned index, const uint8_t *brg_array, size_t num)
         uint8_t b = brg_array[i * 3 + 0];
         uint8_t r = brg_array[i * 3 + 1];
         uint8_t g = brg_array[i * 3 + 2];
-        rgb_buf[index + i] = rgb32(r, g, b, false);
+        rgb_buf[index + i] = apply_level(rgb32(r, g, b, false));
     }
 }
-
 
 void rgb_init()
 {
