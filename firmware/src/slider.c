@@ -93,8 +93,10 @@ void slider_update_config()
     for (int m = 0; m < 3; m++) {
         mpr121_debounce(MPR121_ADDR + m, chu_cfg->sense.debounce_touch,
                                          chu_cfg->sense.debounce_release);
-        mpr121_sense(MPR121_ADDR + m, chu_cfg->sense.global, chu_cfg->sense.keys + m * 12);
-        mpr121_filter(MPR121_ADDR + m, chu_cfg->sense.filter & 0x0f,
-                                       (chu_cfg->sense.filter >> 4) & 0x0f);
+        mpr121_sense(MPR121_ADDR + m, chu_cfg->sense.global,
+                                      chu_cfg->sense.keys + m * 12);
+        mpr121_filter(MPR121_ADDR + m, chu_cfg->sense.filter >> 6,
+                                       (chu_cfg->sense.filter >> 4) & 0x03,
+                                       chu_cfg->sense.filter & 0x07);
     }
 }

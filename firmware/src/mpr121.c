@@ -174,7 +174,7 @@ static uint8_t mpr121_resume(uint8_t addr, uint8_t ecr)
     write_reg(addr, MPR121_ELECTRODE_CONFIG_REG, ecr);
 }
 
-void mpr121_filter(uint8_t addr, uint8_t ffi, uint8_t sfi)
+void mpr121_filter(uint8_t addr, uint8_t ffi, uint8_t sfi, uint8_t esi)
 {
     uint8_t ecr = mpr121_stop(addr);
 
@@ -183,7 +183,8 @@ void mpr121_filter(uint8_t addr, uint8_t ffi, uint8_t sfi)
     uint8_t acc = read_reg(addr, MPR121_AUTOCONFIG_CONTROL_0_REG);
     write_reg(addr, MPR121_AUTOCONFIG_CONTROL_0_REG, (acc & 0x3f) | ffi << 6);
     uint8_t fcr = read_reg(addr, MPR121_FILTER_CONFIG_REG);
-    write_reg(addr, MPR121_FILTER_CONFIG_REG, (fcr & 0xe7) | (sfi & 3) << 3);
+    write_reg(addr, MPR121_FILTER_CONFIG_REG,
+              (fcr & 0xe0) | ((sfi & 3) << 3) | esi);
 
     mpr121_resume(addr, ecr);
 }

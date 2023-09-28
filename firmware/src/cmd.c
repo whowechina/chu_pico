@@ -98,7 +98,9 @@ static void disp_tof()
 static void disp_sense()
 {
     printf("[Sense]\n");
-    printf("  Filter: %d, %d\n", chu_cfg->sense.filter >> 4, chu_cfg->sense.filter & 0xf);
+    printf("  Filter: %u, %u, %u\n", chu_cfg->sense.filter >> 6,
+                                    (chu_cfg->sense.filter >> 4) & 0x03,
+                                    chu_cfg->sense.filter & 0x07);
     printf("  Sensitivity (global: %+d):\n", chu_cfg->sense.global);
     printf("    | 1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|12|13|14|15|16|\n");
     printf("  ---------------------------------------------------\n");
@@ -285,22 +287,29 @@ static void handle_tof(int argc, char *argv[])
 
 static void handle_filter(int argc, char *argv[])
 {
-    const char *usage = "Usage: filter <first> <second>\n"
-                        "  first, second: 0..3\n";
-    if ((argc < 2) || (argc > 2)) {
+    const char *usage = "Usage: filter <first> <second> [interval]\n"
+                        "    first: First iteration [0..3]\n"
+                        "   second: Second iteration [0..3]\n"
+                        " interval: Interval of second iterations [0..7]\n";
+    if ((argc < 2) || (argc > 3)) {
         printf(usage);
         return;
     }
 
     int ffi = extract_non_neg_int(argv[0], 0);
     int sfi = extract_non_neg_int(argv[1], 0);
+    int intv = chu_cfg->sense.filter & 0x07;
+    if (argc == 3) {
+        intv = extract_non_neg_int(argv[2], 0);
+    }
 
-    if ((ffi < 0) || (ffi > 3) || (sfi < 0) || (sfi > 3)) {
+    if ((ffi < 0) || (ffi > 3) || (sfi < 0) || (sfi > 3) ||
+        (intv < 0) || (intv > 7)) {
         printf(usage);
         return;
     }
 
-    chu_cfg->sense.filter = (ffi << 4) | sfi;
+    chu_cfg->sense.filter = (ffi << 6) | (sfi << 4) | intv;
 
     slider_update_config();
     config_changed();
