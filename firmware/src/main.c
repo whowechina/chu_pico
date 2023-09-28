@@ -228,6 +228,11 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id,
             if (lzfx_decompress(buffer + 1, buffer[0], buf, &olen) == 0) {
                 rgb_set_brg(0, buf, olen / 3);
             }
+
+            if (!chu_cfg->hid.joy) {
+                chu_cfg->hid.joy = 1;
+                config_changed();
+            }
         }
         last_hid_time = time_us_64();
         return;
