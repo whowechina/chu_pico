@@ -30,7 +30,7 @@ static chu_cfg_t default_cfg = {
         .pitch = 28,
     },
     .sense = {
-        .filter = 0x11,
+        .filter = 0x10,
         .debounce_touch = 1,
         .debounce_release = 2,
      },
