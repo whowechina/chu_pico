@@ -25,7 +25,8 @@
 
 #include "save.h"
 #include "config.h"
-#include "cmd.h"
+#include "cli.h"
+#include "commands.h"
 
 #include "slider.h"
 #include "air.h"
@@ -139,7 +140,7 @@ static void core1_loop()
             rgb_update();
             mutex_exit(&core1_io_lock);
         }
-        fps_count(1);
+        cli_fps_count(1);
         sleep_ms(1);
     }
 }
@@ -149,9 +150,9 @@ static void core0_loop()
     while(1) {
         tud_task();
 
-        cmd_run();
+        cli_run();
         save_loop();
-        fps_count(0);
+        cli_fps_count(0);
 
         slider_update();
         air_update();
@@ -178,7 +179,9 @@ void init()
     air_init();
     rgb_init();
 
-    cmd_init();
+    cli_init("chu_pico>", "\n   << Chu Pico Controller >>\n"
+                            " https://github.com/whowechina\n\n");
+    commands_init();
 }
 
 int main(void)

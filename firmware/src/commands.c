@@ -11,66 +11,10 @@
 #include "air.h"
 #include "slider.h"
 #include "save.h"
+#include "cli.h"
 
 #define SENSE_LIMIT_MAX 9
 #define SENSE_LIMIT_MIN -9
-
-#define MAX_COMMANDS 20
-#define MAX_PARAMETERS 5
-#define MAX_PARAMETER_LENGTH 20
-
-const char *chu_prompt = "chu_pico>";
-
-typedef void (*cmd_handler_t)(int argc, char *argv[]);
-
-static const char *commands[MAX_COMMANDS];
-static const char *helps[MAX_COMMANDS];
-static cmd_handler_t handlers[MAX_COMMANDS];
-static int max_cmd_len = 0;
-
-static int num_commands = 0;
-
-static void register_command(const char *cmd, cmd_handler_t handler, const char *help)
-{
-    if (num_commands < MAX_COMMANDS) {
-        commands[num_commands] = cmd;
-        handlers[num_commands] = handler;
-        helps[num_commands] = help;
-        num_commands++;
-        if (strlen(cmd) > max_cmd_len) {
-            max_cmd_len = strlen(cmd);
-        }
-    }
-}
-
-// return -1 if not matched, return -2 if ambiguous
-static int match_prefix(const char *str[], int num, const char *prefix)
-{
-    int match = -1;
-    bool found = false;
-
-    for (int i = 0; (i < num) && str[i]; i++) {
-        if (strncasecmp(str[i], prefix, strlen(prefix)) == 0) {
-            if (found) {
-                return -2;
-            }
-            found = true;
-            match = i;
-        }
-    }
-
-    return match;
-}
-
-static void handle_help(int argc, char *argv[])
-{
-    printf("\n   << Chu Pico Controller >>\n");
-    printf(" https://github.com/whowechina\n\n");
-    printf("Available commands:\n");
-    for (int i = 0; i < num_commands; i++) {
-        printf("%*s: %s\n", max_cmd_len + 2, commands[i], helps[i]);
-    }
-}
 
 static void disp_colors()
 {
@@ -143,7 +87,7 @@ void handle_display(int argc, char *argv[])
     }
 
     const char *choices[] = {"colors", "style", "tof", "sense", "hid"};
-    switch (match_prefix(choices, 5, argv[0])) {
+    switch (cli_match_prefix(choices, 5, argv[0])) {
         case 0:
             disp_colors();
             break;
@@ -182,26 +126,6 @@ void fps_count(int core)
     counter[core] = 0;
 }
 
-static void handle_fps(int argc, char *argv[])
-{
-    printf("FPS: core 0: %d, core 1: %d\n", fps[0], fps[1]);
-}
-
-static int extract_non_neg_int(const char *param, int len)
-{
-    if (len == 0) {
-        len = strlen(param);
-    }
-    int result = 0;
-    for (int i = 0; i < len; i++) {
-        if (!isdigit(param[i])) {
-            return -1;
-        }
-        result = result * 10 + param[i] - '0';
-    }
-    return result;
-}
-
 static void handle_level(int argc, char *argv[])
 {
     const char *usage = "Usage: level <0..255>\n";
@@ -210,7 +134,7 @@ static void handle_level(int argc, char *argv[])
         return;
     }
 
-    int level = extract_non_neg_int(argv[0], 0);
+    int level = cli_extract_non_neg_int(argv[0], 0);
     if ((level < 0) || (level > 255)) {
         printf(usage);
         return;
@@ -252,7 +176,7 @@ static void handle_hid(int argc, char *argv[])
     }
 
     const char *choices[] = {"joy", "nkro", "both"};
-    int match = match_prefix(choices, 3, argv[0]);
+    int match = cli_match_prefix(choices, 3, argv[0]);
     if (match < 0) {
         printf(usage);
         return;
@@ -286,10 +210,10 @@ static void handle_tof(int argc, char *argv[])
     int offset = chu_cfg->tof.offset;
     int pitch = chu_cfg->tof.pitch;
     if (argc >= 1) {
-        offset = extract_non_neg_int(argv[0], 0);
+        offset = cli_extract_non_neg_int(argv[0], 0);
     }
     if (argc == 2) {
-        pitch = extract_non_neg_int(argv[1], 0);
+        pitch = cli_extract_non_neg_int(argv[1], 0);
     }
 
     if ((offset < 40) || (offset > 255) || (pitch < 4) || (pitch > 50)) {
@@ -315,11 +239,11 @@ static void handle_filter(int argc, char *argv[])
         return;
     }
 
-    int ffi = extract_non_neg_int(argv[0], 0);
-    int sfi = extract_non_neg_int(argv[1], 0);
+    int ffi = cli_extract_non_neg_int(argv[0], 0);
+    int sfi = cli_extract_non_neg_int(argv[1], 0);
     int intv = chu_cfg->sense.filter & 0x07;
     if (argc == 3) {
-        intv = extract_non_neg_int(argv[2], 0);
+        intv = cli_extract_non_neg_int(argv[2], 0);
     }
 
     if ((ffi < 0) || (ffi > 3) || (sfi < 0) || (sfi > 3) ||
@@ -348,7 +272,7 @@ static uint8_t *extract_key(const char *param)
         return NULL;
     }
 
-    int id = extract_non_neg_int(param, len - 1) - 1;
+    int id = cli_extract_non_neg_int(param, len - 1) - 1;
     if ((id < 0) || (id > 15)) {
         return NULL;
     }
@@ -425,10 +349,10 @@ static void handle_debounce(int argc, char *argv[])
     int touch = chu_cfg->sense.debounce_touch;
     int release = chu_cfg->sense.debounce_release;
     if (argc >= 1) {
-        touch = extract_non_neg_int(argv[0], 0);
+        touch = cli_extract_non_neg_int(argv[0], 0);
     }
     if (argc == 2) {
-        release = extract_non_neg_int(argv[1], 0);
+        release = cli_extract_non_neg_int(argv[1], 0);
     }
 
     if ((touch < 0) || (release < 0) ||
@@ -471,89 +395,17 @@ static void handle_factory_reset()
     printf("Factory reset done.\n");
 }
 
-void cmd_init()
+void commands_init()
 {
-    register_command("?", handle_help, "Display this help message.");
-    register_command("display", handle_display, "Display all config.");
-    register_command("fps", handle_fps, "Display FPS.");
-    register_command("level", handle_level, "Set LED brightness level.");
-    register_command("stat", handle_stat, "Display or reset statistics.");
-    register_command("hid", handle_hid, "Set HID mode.");
-    register_command("tof", handle_tof, "Set ToF config.");
-    register_command("filter", handle_filter, "Set pre-filter config.");
-    register_command("sense", handle_sense, "Set sensitivity config.");
-    register_command("debounce", handle_debounce, "Set debounce config.");
-    register_command("raw", handle_raw, "Show key raw readings.");
-    register_command("save", handle_save, "Save config to flash.");
-    register_command("factory", config_factory_reset, "Reset everything to default.");
-}
-
-static char cmd_buf[256];
-static int cmd_len = 0;
-
-static void process_cmd()
-{
-    char *argv[MAX_PARAMETERS];
-    int argc;
-
-    char *cmd = strtok(cmd_buf, " \n");
-
-    if (strlen(cmd) == 0) {
-        return;
-    }
-
-    argc = 0;
-    while ((argc < MAX_PARAMETERS) &&
-           (argv[argc] = strtok(NULL, " \n")) != NULL) {
-        argc++;
-    }
-
-    int match = match_prefix(commands, num_commands, cmd);
-    if (match == -2) {
-        printf("Ambiguous command.\n");
-        return;
-    }
-    if (match == -1) {
-        printf("Unknown command.\n");
-        handle_help(0, NULL);
-        return;
-    }
-
-    handlers[match](argc, argv);
-}
-
-void cmd_run()
-{
-    int c = getchar_timeout_us(0);
-    if (c == EOF) {
-        return;
-    }
-
-    if (c == '\b' || c == 127) { // both backspace and delete
-        if (cmd_len > 0) {
-            cmd_len--;
-            printf("\b \b");
-        }
-        return;
-    }
-
-    if ((c != '\n') && (c != '\r')) {
-
-        if (cmd_len < sizeof(cmd_buf) - 2) {
-            cmd_buf[cmd_len] = c;
-            printf("%c", c);
-            cmd_len++;
-        }
-        return;
-    }
-
-
-    cmd_buf[cmd_len] = '\0';
-    cmd_len = 0;
-
-    printf("\n");
-
-    process_cmd();
-
-    printf(chu_prompt);
+    cli_register("display", handle_display, "Display all config.");
+    cli_register("level", handle_level, "Set LED brightness level.");
+    cli_register("stat", handle_stat, "Display or reset statistics.");
+    cli_register("hid", handle_hid, "Set HID mode.");
+    cli_register("tof", handle_tof, "Set ToF config.");
+    cli_register("filter", handle_filter, "Set pre-filter config.");
+    cli_register("sense", handle_sense, "Set sensitivity config.");
+    cli_register("debounce", handle_debounce, "Set debounce config.");
+    cli_register("raw", handle_raw, "Show key raw readings.");
+    cli_register("save", handle_save, "Save config to flash.");
+    cli_register("factory", config_factory_reset, "Reset everything to default.");
 }
