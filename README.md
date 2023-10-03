@@ -30,7 +30,7 @@ Also, you can check out my other cool projects.
 <img src="https://raw.githubusercontent.com/whowechina/iidx_teeny/main/doc/main.jpg" width="230px">
 
 This Chu Pico project:  
-* Heavily depends on 3D printing, you need a Bambu 3D printer.
+* Heavily depends on 3D printing, you need a Bambu 3D printer (X1 or P1).
 * Requires skills to solder tiny components.
 
 ## **Disclaimer** ##
