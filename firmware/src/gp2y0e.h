@@ -31,24 +31,24 @@ static inline bool gp2y0e_is_present(i2c_inst_t *port)
                                     time_us_64() + 1000) == 1;
 }
 
-static inline uint8_t gp2y0e_dist(i2c_inst_t *port)
+static inline uint8_t gp2y0e_dist_mm(i2c_inst_t *port)
 {
     uint8_t cmd[] = {0x5e};
     i2c_write_blocking_until(port, GP2Y0E_DEF_ADDR, cmd, 1, true, time_us_64() + 1000);
     uint8_t data;
     i2c_read_blocking_until(port, GP2Y0E_DEF_ADDR, &data, 1, false, time_us_64() + 1000);
 
-    return data;
+    return data * 10 / 4;
 }
 
-static inline uint16_t gp2y0e_dist16(i2c_inst_t *port)
+static inline uint16_t gp2y0e_dist16_mm(i2c_inst_t *port)
 {
     uint8_t cmd[] = {0x5e};
     i2c_write_blocking_until(port, GP2Y0E_DEF_ADDR, cmd, 1, true, time_us_64() + 1000);
     uint8_t data[2];
     i2c_read_blocking_until(port, GP2Y0E_DEF_ADDR, data, 2, false, time_us_64() + 1000);
 
-    return (data[0] << 4) | data[1];
+    return ((data[0] << 4) | data[1]) * 10 / 64;
 }
 
 #endif

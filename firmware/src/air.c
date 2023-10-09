@@ -111,8 +111,7 @@ void air_update()
         if (tof_model[i] == 1) {
             distances[i] = readRangeContinuousMillimeters() * 10;
         } else if (tof_model[i] == 2) {
-            /* compensation based on observation, don't know why*/
-            distances[i] = gp2y0e_dist16(I2C_PORT) * 16 / 10;
+            distances[i] = gp2y0e_dist16_mm(I2C_PORT) * 10;
         }
     }
 }
