@@ -8,6 +8,7 @@ Features:
 * HID lights, of course!
 * 32 keys (upper and lower rows).
 * Follows CrazyRedMachine's RedBoard I/O protocol.
+* Command line of rich features.
 * All source files open.
 
 Thanks to many respectful guys/companies who made their tools or materials free or open source (KiCad, OnShape, InkScape, Raspberry things).
@@ -30,7 +31,7 @@ This one is relatively easy to build compared with my other projects like IIDX P
 <img src="https://raw.githubusercontent.com/whowechina/mai_pico/main/doc/main.jpg" width="250px">
 
 This Chu Pico project:  
-* Heavily depends on 3D printing, you need a Bambu 3D printer.
+* Heavily depends on 3D printing, you need a Bambu 3D printer (X1 or P1).
 * Requires skills to solder tiny components.
 
 ## **Disclaimer** ##
@@ -87,7 +88,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
     <img src="doc/lgp_5.png" width="50%">
 
 ### Panel Film
-* A self-adhesive **textured**/**frosted** film sheet, it is applied on top surface of the light guide panel. It improves touch feel. You can use buy window sticker film. You **MUST** use self-adhesive ones, **NOT** static cling ones. They're usually very cheap.
+* A self-adhesive **textured**/**frosted** film sheet, it is applied on top surface of the light guide panel. It improves touch feel. You can use window sticker film. It **MUST** be self-adhesive ones, **NOT** static cling ones. They're usually very cheap.
 * Cut the film to roughly match the shape of the light guide panel, and stick to the panel.  
   <img src="doc/film_1.jpg" width="60%">
 * Gentlely rub the film to remove any air bubbles and make it stick tightly.  
