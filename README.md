@@ -17,9 +17,17 @@ And thanks to community developers that inspired me and helped me: CrazyRedMachi
 ## Notes
 This one is relatively easy to build compared with my other projects like IIDX Pico or Teeny. You can check out my other cool projects.
 
-* Popn Pico: https://github.com/whowechina/popn_pico
-* IIDX Pico: https://github.com/whowechina/iidx_pico
-* IIDX Teeny: https://github.com/whowechina/iidx_teeny
+* Popn Pico: https://github.com/whowechina/popn_pico  
+<img src="https://raw.githubusercontent.com/whowechina/popn_pico/main/doc/main.jpg" width="180px">
+
+* IIDX Pico: https://github.com/whowechina/iidx_pico  
+<img src="https://raw.githubusercontent.com/whowechina/iidx_pico/main/doc/main.jpg" width="250px">
+
+* IIDX Teeny: https://github.com/whowechina/iidx_teeny  
+<img src="https://raw.githubusercontent.com/whowechina/iidx_teeny/main/doc/main.jpg" width="250px">
+
+* Mai Pico: https://github.com/whowechina/mai_pico  
+<img src="https://raw.githubusercontent.com/whowechina/mai_pico/main/doc/main.jpg" width="250px">
 
 This Chu Pico project:  
 * Heavily depends on 3D printing, you need a Bambu 3D printer.
