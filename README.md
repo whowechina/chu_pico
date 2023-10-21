@@ -123,7 +123,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
   * Support: Yes. If you have Bambu AMS system, use their special support material at interface layers.
 
 * Base: `Production\3D\chu_pico_base.stl`, dark gray filament.
-* Top Cover: `Production\3D\chu_pico_top_cover.stl`, dark gray filament.
+* Cover: `Production\3D\chu_pico_cover(_aime).stl`, dark gray filament.
 * Cover Base: `Production\3D\chu_pico_cover_base.stl`, **clear transparent (IMPORTANT)** filament.
 * Light Guide Panel Fixer: `Production\3D\chu_pico_lgp_fixer.stl`, color doesn't matter.
 
@@ -132,7 +132,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 
 From top to bottom:
 * IR Cover
-* Top Cover
+* Cover
 * Cover Base
 * Panel Film
 * Light Guide Panel
