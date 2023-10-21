@@ -13,6 +13,10 @@
 #include "save.h"
 #include "cli.h"
 
+#include "i2c_hub.h"
+
+#include "pn532.h"
+
 #define SENSE_LIMIT_MAX 9
 #define SENSE_LIMIT_MIN -9
 
@@ -395,6 +399,37 @@ static void handle_factory_reset()
     printf("Factory reset done.\n");
 }
 
+static void handle_nfc()
+{
+    i2c_select(I2C_PORT, 1 << 5); // PN532 on IR1 (I2C mux chn 5)
+
+    bool ret = pn532_config_sam();
+    printf("Sam: %d\n", ret);
+
+    uint8_t buf[32];
+
+    int len = sizeof(buf);
+    ret = pn532_poll_mifare(buf, &len);
+    printf("Mifare: %d -", len);
+
+    if (ret) {
+        for (int i = 0; i < len; i++) {
+            printf(" %02x", buf[i]);
+        }
+    }
+    printf("\n");
+
+    len = sizeof(buf);
+    ret = pn532_poll_felica(buf, &len);
+    printf("Felica: %d -", len);
+    if (ret) {
+        for (int i = 0; i < len; i++) {
+            printf(" %02x", buf[i]);
+        }
+    }
+    printf("\n");
+}
+
 void commands_init()
 {
     cli_register("display", handle_display, "Display all config.");
@@ -407,5 +442,6 @@ void commands_init()
     cli_register("debounce", handle_debounce, "Set debounce config.");
     cli_register("raw", handle_raw, "Show key raw readings.");
     cli_register("save", handle_save, "Save config to flash.");
-    cli_register("factory", config_factory_reset, "Reset everything to default.");
+    cli_register("factory", handle_factory_reset, "Reset everything to default.");
+    cli_register("nfc", handle_nfc, "NFC debug.");
 }
