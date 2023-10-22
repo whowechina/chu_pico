@@ -242,12 +242,42 @@ int pn532_read_response(uint8_t cmd, uint8_t *resp, uint8_t len)
     return data_len;
 }
 
+uint32_t pn532_firmware_ver()
+{
+    int ret = pn532_write_command(0x02, NULL, 0);
+    if (ret < 0) {
+        return 0;
+    }
+
+    uint8_t ver[4];
+    int result = pn532_read_response(0x4a, ver, sizeof(ver));
+    if (result < 4) {
+        return 0;
+    }
+
+    uint32_t version = 0;
+    for (int i = 0; i < 4; i++) {
+        version <<= 8;
+        version |= ver[i];
+    }
+    return version;
+}
+
 bool pn532_config_sam()
 {
     uint8_t param[] = {0x01, 0x14, 0x01};
     int result = pn532_write_command(0x14, param, 3);
 
     return pn532_read_response(0x14, NULL, 0) == 0;
+}
+
+
+bool pn532_set_rf_field(uint8_t auto_rf, uint8_t on_off)
+{
+    uint8_t param[] = { 1, auto_rf | on_off };
+    int result = pn532_write_command(0x32, param, 2);
+
+    return pn532_read_response(0x32, NULL, 0) >= 0;
 }
 
 static uint8_t card[32];
@@ -288,11 +318,13 @@ bool pn532_poll_felica(uint8_t *uid, int *len)
     }
 
     int result = pn532_read_response(0x4a, card, sizeof(card));
-    if (result < 1 || card[0] != 1) {
+    if (card[0] != 1) {
         return false;
     }
 
-   if ((result == 20 && card[2] == 18) ||
+    printf("Felica poll: len=%d\n", card[2]);
+
+    if ((result == 20 && card[2] == 18) ||
         (result == 22 && card[2] == 20)) {
         if (*len < card[2]) {
             return false;

@@ -27,6 +27,7 @@
 #include "config.h"
 #include "cli.h"
 #include "commands.h"
+#include "aime.h"
 
 #include "slider.h"
 #include "air.h"
@@ -151,6 +152,8 @@ static void core0_loop()
         tud_task();
 
         cli_run();
+        aime_update();
+    
         save_loop();
         cli_fps_count(0);
 
@@ -179,8 +182,11 @@ void init()
     air_init();
     rgb_init();
 
+    aime_init(1);
+
     cli_init("chu_pico>", "\n   << Chu Pico Controller >>\n"
                             " https://github.com/whowechina\n\n");
+    
     commands_init();
 }
 
