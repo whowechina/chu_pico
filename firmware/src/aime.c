@@ -249,8 +249,7 @@ typedef struct __attribute__((packed)) {
             uint8_t service_num;
             uint8_t service_code[2];
             uint8_t block_num;
-            uint8_t block_list[2];
-            uint8_t blocks[16];
+            uint8_t block_list[0][2];
         } other;
         uint8_t payload[32];
     };
@@ -270,7 +269,7 @@ typedef struct __attribute__((packed)) {
         struct {
             uint8_t rw_status[2];
             uint8_t block_num;
-            uint8_t blocks[16];
+            uint8_t blocks[1][16];
         } other;
         uint8_t payload[32];
     };
@@ -306,7 +305,7 @@ static void cmd_felica_thru()
             if (len == 20) {
                 memcpy(resp->poll.system_code, card + 16, 2);
             } else {
-                memcpy(resp->poll.system_code, req->poll.system_code, 2);
+                memcpy(resp->poll.system_code, "\0\0", 2);
             }
             break;
         case CMD_FELICA_THROUGH_GET_SYSTEM_CODE:
@@ -323,20 +322,17 @@ static void cmd_felica_thru()
             break;
         case CMD_FELICA_THROUGH_READ:
             printf("\tREAD\n");
-            #if 0
-            uint8_t services[2] = { req->other.service_code[0], req->other.service_code[1] };
+            uint16_t service = req->other.service_code[0] << 8 | req->other.service_code[1];
+            uint16_t block = req->other.block_list[0][0] << 8 | req->other.block_list[0][1];
             for (int i = 0; i < req->other.block_num; i++) {
-                uint16_t blockList[1] = { (uint16_t)(req->blockList[i][0] << 8 | req->blockList[i][1]) };
-                if (nfc.felica_ReadWithoutEncryption(1, serviceCodeList, 1, blockList, res.blockData[i]) != 1) {
-                memset(res.blockData[i], 0, 16);  // dummy data
-                }
+                //if (pn532_felica_read_no_encrypt(req->other.service_code, 1, req->other.block_list, resp->blocks[i])) {
+                    memset(resp->other.blocks[i], 0, 16);
+                //}
             }
-            res.RW_status[0] = 0;
-            res.RW_status[1] = 0;
-            res.numBlock = req->numBlock;
-            res_init(0x0D + req->numBlock * 16);
-            #endif
-            build_response(0);
+            resp->other.rw_status[0] = 0;
+            resp->other.rw_status[1] = 0;
+            resp->other.block_num = req->other.block_num;
+            build_response(13 + resp->other.block_num * 16);
             break;
         case CMD_FELICA_THROUGH_WRITE:
             printf("\tWRITE\n");
@@ -363,7 +359,6 @@ static uint32_t led_color;
 
 static void cmd_led_rgb()
 {
-    printf("\t RGB: %02x %02x %02x\n", request.payload[0], request.payload[1], request.payload[2]);
     led_color = request.payload[0] << 16 | request.payload[1] << 8 | request.payload[2];
     build_response(0);
     send_response();
@@ -375,7 +370,6 @@ static void aime_handle_frame()
 
     switch (request.cmd) {
         case CMD_TO_NORMAL_MODE:
-            printf("CMD_TO_NORMAL_MODE\n");
             cmd_to_normal_mode();
             break;
         case CMD_GET_FW_VERSION:
@@ -396,29 +390,34 @@ static void aime_handle_frame()
             break;
 
         case CMD_START_POLLING:
-            printf("CMD_START_POLLING\n");
             cmd_set_polling(true);
             break;
         case CMD_STOP_POLLING:
-            printf("CMD_TO_NORMAL_MODE\n");
             cmd_set_polling(false);
             break;
         case CMD_CARD_DETECT:
-            printf("CMD_CARD_DETECT\n");
             cmd_detect_card();
             break;
         case CMD_FELICA_THROUGH:
-            printf("CMD_FELICA_THROUGH\n");
             cmd_felica_thru();
             break;
 
+        case CMD_CARD_SELECT:
+        case CMD_MIFARE_AUTHORIZE_B:
+        case CMD_MIFARE_READ:
+        case CMD_CARD_HALT:
+            break;
+
         case CMD_EXT_BOARD_INFO:
-            printf("CMD_EXT_BOARD_INFO\n");
             cmd_fake_version(led_info);
             break;
         case CMD_EXT_BOARD_LED_RGB:
-            printf("CMD_EXT_BOARD_LED_RGB\n");
             cmd_led_rgb();
+            break;
+
+        case CMD_SEND_HEX_DATA:
+        case CMD_EXT_TO_NORMAL_MODE:
+            simple_response(STATUS_OK);
             break;
 
         default:
@@ -485,4 +484,9 @@ void aime_update()
             aime_feed(buf[i]);
         }
     }
+}
+
+uint32_t aime_led_color()
+{
+    return led_color;
 }

@@ -8,5 +8,6 @@
 
 void aime_init(int interface);
 void aime_update();
+uint32_t aime_led_color();
 
 #endif

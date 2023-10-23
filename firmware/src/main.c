@@ -109,26 +109,35 @@ static uint64_t last_hid_time = 0;
 static void run_lights()
 {
     uint64_t now = time_us_64();
-    if (now - last_hid_time < 1000000) {
-        return;
+
+    if (now - last_hid_time >= 1000000) {
+        const uint32_t colors[] = {0x000000, 0x0000ff, 0xff0000, 0xffff00,
+                                0x00ff00, 0x00ffff, 0xffffff};
+        for (int i = 0; i < air_num(); i++) {
+            int d = air_value(i);
+            rgb_set_color(31 + i, colors[d]);
+        }
+
+        for (int i = 0; i < 15; i++) {
+            uint32_t color = rgb32_from_hsv(i * 573 / 15, 255, 16);
+            rgb_gap_color(i, color);
+        }
+
+        for (int i = 0; i < 16; i++) {
+            bool r = slider_touched(i * 2);
+            bool g = slider_touched(i * 2 + 1);
+            rgb_set_color(30 - i * 2, rgb32(r ? 80 : 0, g ? 80 : 0, 0, false));
+        }
     }
 
-    const uint32_t colors[] = {0x000000, 0x0000ff, 0xff0000, 0xffff00,
-                               0x00ff00, 0x00ffff, 0xffffff};
-    for (int i = 0; i < air_num(); i++) {
-        int d = air_value(i);
-        rgb_set_color(31 + i, colors[d]);
-    }
-
-    for (int i = 0; i < 15; i++) {
-        uint32_t color = rgb32_from_hsv(i * 573 / 15, 255, 16);
-        rgb_gap_color(i, color);
-    }
-
-    for (int i = 0; i < 16; i++) {
-        bool r = slider_touched(i * 2);
-        bool g = slider_touched(i * 2 + 1);
-        rgb_set_color(30 - i * 2, rgb32(r ? 80 : 0, g ? 80 : 0, 0, false));
+    uint32_t aime_color = aime_led_color();
+    if (aime_color > 0) {
+        uint8_t r = aime_color >> 16;
+        uint8_t g = aime_color >> 8;
+        uint8_t b = aime_color;
+        aime_color = rgb32(r, g, b, false);
+        rgb_set_color(34, aime_color);
+        rgb_set_color(35, aime_color);
     }
 }
 

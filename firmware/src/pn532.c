@@ -311,7 +311,7 @@ bool pn532_poll_mifare(uint8_t *uid, int *len)
 
 bool pn532_poll_felica(uint8_t *uid, int *len)
 {
-    uint8_t param[] = { 1, 1, 0, 0xff, 0xff, 0, 0};
+    uint8_t param[] = { 1, 1, 0, 0xff, 0xff, 1, 0};
     int ret = pn532_write_command(0x4a, param, sizeof(param));
     if (ret < 0) {
         return false;
@@ -321,8 +321,6 @@ bool pn532_poll_felica(uint8_t *uid, int *len)
     if (card[0] != 1) {
         return false;
     }
-
-    printf("Felica poll: len=%d\n", card[2]);
 
     if ((result == 20 && card[2] == 18) ||
         (result == 22 && card[2] == 20)) {
@@ -336,3 +334,58 @@ bool pn532_poll_felica(uint8_t *uid, int *len)
 
     return false;
 }
+
+#if 0
+bool pn532_felica_read_no_encrypt(uint16_t service_code, uint16_t block,
+                                  uint8_t block_data[16])
+{
+    uint8_t i, j=0, k;
+    uint8_t cmdLen = 1 + 8 + 1 + 2 + 1 + 2;
+    uint8_t cmd[cmdLen];
+    cmd[j++] = FELICA_CMD_READ_WITHOUT_ENCRYPTION;
+    for (i=0; i<8; ++i) {
+    cmd[j++] = _felicaIDm[i];
+    }
+    cmd[j++] = numService;
+    for (i=0; i<numService; ++i) {
+    cmd[j++] = serviceCodeList[i] & 0xFF;
+    cmd[j++] = (serviceCodeList[i] >> 8) & 0xff;
+    }
+    cmd[j++] = numBlock;
+    for (i=0; i<numBlock; ++i) {
+    cmd[j++] = (blockList[i] >> 8) & 0xFF;
+    cmd[j++] = blockList[i] & 0xff;
+    }
+
+    uint8_t response[12+16*numBlock];
+    uint8_t responseLength;
+    if (felica_SendCommand(cmd, cmdLen, response, &responseLength) != 1) {
+    DMSG("Read Without Encryption command failed\n");
+    return -3;
+    }
+
+    // length check
+    if ( responseLength != 12+16*numBlock ) {
+    DMSG("Read Without Encryption command failed (wrong response length)\n");
+    return -4;
+    }
+
+    // status flag check
+    if ( response[9] != 0 || response[10] != 0 ) {
+    DMSG("Read Without Encryption command failed (Status Flag: ");
+    DMSG_HEX(pn532_packetbuffer[9]);
+    DMSG_HEX(pn532_packetbuffer[10]);
+    DMSG(")\n");
+    return -5;
+    }
+
+    k = 12;
+    for(i=0; i<numBlock; i++ ) {
+    for(j=0; j<16; j++ ) {
+        blockData[i][j] = response[k++];
+    }
+    }
+
+    return 1;
+}
+#endif
