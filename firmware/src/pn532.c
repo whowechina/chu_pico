@@ -280,7 +280,7 @@ bool pn532_set_rf_field(uint8_t auto_rf, uint8_t on_off)
     return pn532_read_response(0x32, NULL, 0) >= 0;
 }
 
-static uint8_t card[32];
+static uint8_t readbuf[255];
 
 bool pn532_poll_mifare(uint8_t *uid, int *len)
 {
@@ -290,26 +290,32 @@ bool pn532_poll_mifare(uint8_t *uid, int *len)
         return false;
     }
 
-    int result = pn532_read_response(0x4a, card, sizeof(card));
-    if (result < 1 || card[0] != 1) {
+    int result = pn532_read_response(0x4a, readbuf, sizeof(readbuf));
+    if (result < 1 || readbuf[0] != 1) {
         return false;
     }
 
-    if (result != card[5] + 6) {
+    if (result != readbuf[5] + 6) {
         return false;
     }
 
-    if (*len < card[5]) {
+    if (*len < readbuf[5]) {
         return false;
     }
 
-    memcpy(uid, card + 6, card[5]);
-    *len = card[5];
+    memcpy(uid, readbuf + 6, readbuf[5]);
+    *len = readbuf[5];
 
     return true;
 }
 
-bool pn532_poll_felica(uint8_t *uid, int *len)
+static struct __attribute__((packed)) {
+    uint8_t idm[8];
+    uint8_t pmm[8];
+    uint8_t syscode[2];
+} felica_poll_cache;
+
+bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2])
 {
     uint8_t param[] = { 1, 1, 0, 0xff, 0xff, 1, 0};
     int ret = pn532_write_command(0x4a, param, sizeof(param));
@@ -317,75 +323,65 @@ bool pn532_poll_felica(uint8_t *uid, int *len)
         return false;
     }
 
-    int result = pn532_read_response(0x4a, card, sizeof(card));
-    if (card[0] != 1) {
+    int result = pn532_read_response(0x4a, readbuf, sizeof(readbuf));
+    if (result != 22 || readbuf[1] != 1 || readbuf[2] != 20) {
         return false;
     }
 
-    if ((result == 20 && card[2] == 18) ||
-        (result == 22 && card[2] == 20)) {
-        if (*len < card[2]) {
-            return false;
-        }
-        *len = card[2];
-        memcpy(uid, card + 4, card[2]);
-        return true;
-    }
+    memcpy(&felica_poll_cache, readbuf + 4, 18);
 
-    return false;
+    memcpy(uid, readbuf + 4, 8);
+    memcpy(pmm, readbuf + 12, 8);
+    memcpy(syscode, readbuf + 20, 2);
+
+    return true;
 }
 
-#if 0
-bool pn532_felica_read_no_encrypt(uint16_t service_code, uint16_t block,
-                                  uint8_t block_data[16])
+bool pn532_felica_read_no_encrypt(uint8_t svc_num, const uint16_t *svc_codes,
+                                  uint8_t block_num, const uint16_t *block_list,
+                                  uint8_t block_data[][16])
 {
-    uint8_t i, j=0, k;
-    uint8_t cmdLen = 1 + 8 + 1 + 2 + 1 + 2;
-    uint8_t cmd[cmdLen];
-    cmd[j++] = FELICA_CMD_READ_WITHOUT_ENCRYPTION;
-    for (i=0; i<8; ++i) {
-    cmd[j++] = _felicaIDm[i];
-    }
-    cmd[j++] = numService;
-    for (i=0; i<numService; ++i) {
-    cmd[j++] = serviceCodeList[i] & 0xFF;
-    cmd[j++] = (serviceCodeList[i] >> 8) & 0xff;
-    }
-    cmd[j++] = numBlock;
-    for (i=0; i<numBlock; ++i) {
-    cmd[j++] = (blockList[i] >> 8) & 0xFF;
-    cmd[j++] = blockList[i] & 0xff;
+    uint8_t param_len = 8 + 1 + 2 * svc_num + 1 + 2 * block_num;
+    uint8_t param[param_len];
+    memcpy(param, felica_poll_cache.idm, 8);
+
+    uint8_t *service = param + 8;
+    service[0] = svc_num;
+    for (int i = 0; i < svc_num; i++) {
+        service[2 + 2 * i] = svc_codes[i] >> 8;
+        service[1 + 2 * i] = svc_codes[i] & 0xff;
     }
 
-    uint8_t response[12+16*numBlock];
-    uint8_t responseLength;
-    if (felica_SendCommand(cmd, cmdLen, response, &responseLength) != 1) {
-    DMSG("Read Without Encryption command failed\n");
-    return -3;
+    uint8_t *block = param + 9 + 2 * svc_num;
+    block[0] = block_num;
+    for (int i = 0; i < block_num; i++) {
+        block[1 + 2 * i] = block_list[i] >> 8;
+        block[2 + 2 * i] = block_list[i] & 0xff;
     }
 
-    // length check
-    if ( responseLength != 12+16*numBlock ) {
-    DMSG("Read Without Encryption command failed (wrong response length)\n");
-    return -4;
+    printf("PN532 Felica READ param: ");
+    for (int i = 0; i < param_len; i++) {
+        printf("%02x ", param[i]);
+    }
+    printf("\n");
+
+    int ret = pn532_write_command(0x06, param, param_len);
+    if (ret < 0) {
+        printf("PN532 Felica READ write command failed\n");
+        return false;
     }
 
-    // status flag check
-    if ( response[9] != 0 || response[10] != 0 ) {
-    DMSG("Read Without Encryption command failed (Status Flag: ");
-    DMSG_HEX(pn532_packetbuffer[9]);
-    DMSG_HEX(pn532_packetbuffer[10]);
-    DMSG(")\n");
-    return -5;
+    int result = pn532_read_response(0x06, readbuf, sizeof(readbuf));
+    if (result != 12 + 16 * block_num || readbuf[9] != 0 || readbuf[10] != 0) {
+        printf("PN532 Felica READ read response failed %d %02x %02x\n",
+               result, readbuf[9], readbuf[10]);
+        return false;
     }
 
-    k = 12;
-    for(i=0; i<numBlock; i++ ) {
-    for(j=0; j<16; j++ ) {
-        blockData[i][j] = response[k++];
-    }
+    const uint8_t *result_data = readbuf + 12; 
+    for (int i = 0; i < block_num; i++) {
+        memcpy(block_data[i], result_data + 16 * i, 16);
     }
 
-    return 1;
+    return true;
 }
-#endif

@@ -419,11 +419,9 @@ static void handle_nfc()
     }
     printf("\n");
 
-    len = sizeof(buf);
-    ret = pn532_poll_felica(buf, &len);
-    printf("Felica: %d -", len);
-    if (ret) {
-        for (int i = 0; i < len; i++) {
+    printf("Felica: ");
+    if (pn532_poll_felica(buf, buf + 8, buf + 16)) {
+        for (int i = 0; i < 18; i++) {
             printf(" %02x", buf[i]);
         }
     }

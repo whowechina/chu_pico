@@ -206,153 +206,229 @@ static void cmd_detect_card()
         uint8_t count;
         uint8_t type;
         uint8_t id_len;
-        uint8_t uid[20];
+        uint8_t idm[8];
+        uint8_t pmm[8];
+        uint8_t syscode[2];
     } card_info_t;
     
-    card_info_t *card_info = (card_info_t *) response.payload;
+    card_info_t *card = (card_info_t *) response.payload;
 
-    int len = sizeof(card_info->uid);
-    if (pn532_poll_mifare(card_info->uid, &len)) {
+    int len = sizeof(card->idm);
+    if (pn532_poll_mifare(card->idm, &len)) {
         build_response(len > 4 ? 10 : 7);
-        card_info->count = 1;
-        card_info->type = 0x10;
-        card_info->id_len = len;
-        printf("Card Mifare %d\n", card_info->id_len);
-    } else if (pn532_poll_felica(card_info->uid, &len)) {
+        card->count = 1;
+        card->type = 0x10;
+        card->id_len = len;
+        printf("Card Mifare %d\n", card->id_len);
+    } else if (pn532_poll_felica(card->idm, card->pmm, card->syscode)) {
         build_response(19);
-        card_info->count = 1;
-        card_info->type = 0x20;
-        card_info->id_len = 16;
-        printf("Card Felica %d\n", card_info->id_len);
+        card->count = 1;
+        card->type = 0x20;
+        card->id_len = 16;
+        printf("Card Felica %d\n", card->id_len);
     } else {
         build_response(1);
-        card_info->count = 0;
+        card->count = 0;
         response.status = STATUS_OK;
     }
     send_response();
 }
 
 typedef struct __attribute__((packed)) {
+    uint8_t idm[8];
+    uint8_t len;
+    uint8_t code;
+    uint8_t data[0];
+} felica_encap_req_t;
+
+union req {
     struct {
-        uint8_t idm[8];
-        uint8_t len;
-        uint8_t code;
-    } encap;
-    union {
-        struct {
-            uint8_t system_code[2];
-            uint8_t request_code;
-            uint8_t timeout;
-        } poll;
-        struct {
-            uint8_t rw_idm[8];
-            uint8_t service_num;
-            uint8_t service_code[2];
-            uint8_t block_num;
-            uint8_t block_list[0][2];
-        } other;
-        uint8_t payload[32];
-    };
-} felica_thru_req_t;
+        uint8_t system_code[2];
+        uint8_t request_code;
+        uint8_t timeout;
+    } poll;
+    struct {
+        uint8_t rw_idm[8];
+        uint8_t service_num;
+        uint8_t service_code[2];
+        uint8_t block_num;
+        uint8_t block_list[0][2];
+    } other;
+    uint8_t payload[32];
+};
 
 typedef struct __attribute__((packed)) {
+    uint8_t len;
+    uint8_t code;
+    uint8_t idm[8];
+    uint8_t data[0];
+} felica_encap_resp_t;
+
+union resp {
+
     struct {
-        uint8_t len;
-        uint8_t code;
-        uint8_t idm[8];
-    } encap;
-    union {
-        struct {
-            uint8_t pmm[8];
-            uint8_t system_code[2];
-        } poll;
-        struct {
-            uint8_t rw_status[2];
-            uint8_t block_num;
-            uint8_t blocks[1][16];
-        } other;
-        uint8_t payload[32];
-    };
-} felica_thru_resp_t;
+        uint8_t rw_status[2];
+        uint8_t block_num;
+        uint8_t blocks[1][16];
+    } other;
+    uint8_t payload[32];
+};
 
 
-static void cmd_felica_thru()
+typedef struct __attribute__((packed)) {
+    uint8_t idm[8];
+    uint8_t pmm[8];
+    uint8_t syscode[2];
+} card_id_t;
+
+static int cmd_felica_encap_poll(const card_id_t *card)
 {
-    felica_thru_req_t *req = (felica_thru_req_t *) request.payload;
-    felica_thru_resp_t *resp = (felica_thru_resp_t *) response.payload;
+    typedef struct __attribute__((packed)) {
+        uint8_t pmm[8];
+        uint8_t syscode[2];
+    } encap_poll_resp_t;
 
-    uint8_t card[20];
-    int len = 20;
-    if (!pn532_poll_felica(card, &len)) {
-        simple_response(STATUS_FELICA_ERROR);        
-    }
+    printf("\tPOLL\n");
 
-    printf("Felica Thru:");
-    for (int i = 0; i < 16; i++) {
+    felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
+    encap_poll_resp_t *poll_resp = (encap_poll_resp_t *) encap_resp->data;
+
+    build_response(20);
+    memcpy(poll_resp->pmm, card->pmm, 8);
+    memcpy(poll_resp->syscode, card->syscode, 2);
+
+    return sizeof(*poll_resp);
+}
+
+static int cmd_felica_encap_get_syscode(const card_id_t *card)
+{
+    printf("\tGET_SYSTEM_CODE\n");
+    felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
+    encap_resp->data[0] = 0x01;
+    encap_resp->data[1] = card->syscode[0];
+    encap_resp->data[2] = card->syscode[1];
+    return 3;
+}
+
+static int cmd_felica_encap_read()
+{
+    printf("\tREAD\n");
+    felica_encap_req_t *encap_req = (felica_encap_req_t *) request.payload;
+    uint8_t *req_data = encap_req->data;
+
+    printf("Felica Encap Request:");
+    for (int i = 0; i < request.payload_len; i++) {
         printf(" %02x", request.payload[i]);
     }
     printf("\n");
 
-    uint8_t code = req->encap.code;
-    resp->encap.code = code + 1;
+    uint8_t *service = req_data + 8;
+    uint8_t svc_num = service[0];
+    uint16_t svc_codes[svc_num];
+    for (int i = 0; i < svc_num; i++) {
+        svc_codes[i] = service[i + 1] | (service[i + 2] << 8);
+    }
 
-    switch (code) {
-        case CMD_FELICA_THROUGH_POLL:
-            printf("\tPOLL\n");
-            build_response(20);
-            memcpy(resp->encap.idm, card, 8);
-            memcpy(resp->poll.pmm, card + 8, 8);
-            if (len == 20) {
-                memcpy(resp->poll.system_code, card + 16, 2);
-            } else {
-                memcpy(resp->poll.system_code, "\0\0", 2);
-            }
-            break;
+    uint8_t *block = req_data + 9 + svc_num * 2;
+    uint8_t block_num = block[0];
+    uint16_t block_list[block_num];
+    for (int i = 0; i < block_num; i++) {
+        block_list[i] = (block[i + 1] << 8) | block[i + 2];
+    }
+
+    typedef struct __attribute__((packed)) {
+        uint8_t rw_status[2];
+        uint8_t block_num;
+        uint8_t block_data[0][16];
+    } encap_read_resp_t;
+
+    felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
+    encap_read_resp_t *read_resp = (encap_read_resp_t *) encap_resp->data;
+
+    if (!pn532_felica_read_no_encrypt(svc_num, svc_codes, block_num, block_list,
+                                      read_resp->block_data)) {
+        printf("Felica READ failed\n");
+        return -1;
+    }
+
+    read_resp->rw_status[0] = 0x00;
+    read_resp->rw_status[1] = 0x00;
+    read_resp->block_num = block_num;
+
+    return sizeof(*read_resp);
+}
+
+#if 0
+
+        break;
+
+    case CMD_FELICA_THROUGH_NDA_A4:
+        printf("\tNDA_A4\n");
+        build_response(11);
+        resp->payload[0] = 0x00;
+        break;
+    case CMD_FELICA_THROUGH_WRITE:
+        printf("\tWRITE\n");
+        build_response(12);
+        resp->other.rw_status[0] = 0;
+        resp->other.rw_status[1] = 0;
+        break;
+    default:
+        printf("\tUnknown through: %02x\n", code);
+        build_response(0);
+        response.status = STATUS_OK;
+#endif
+
+static void cmd_felica_encap()
+{
+    felica_encap_req_t *encap_req = (felica_encap_req_t *) request.payload;
+
+    card_id_t card;
+
+    if (!pn532_poll_felica(card.idm, card.pmm, card.syscode)) {
+        simple_response(STATUS_FELICA_ERROR);        
+    }
+
+    printf("Felica Encap (%02x):", encap_req->code);
+    for (int i = 0; i < request.payload_len; i++) {
+        printf(" %02x", request.payload[i]);
+    }
+    printf("\n");
+
+    int datalen = -1;
+    switch (encap_req->code) {
         case CMD_FELICA_THROUGH_GET_SYSTEM_CODE:
-            printf("\tGET_SYSTEM_CODE\n");
-            build_response(13);
-            resp->payload[0] = 0x01;
-            resp->payload[1] = resp->poll.system_code[0];
-            resp->payload[2] = resp->poll.system_code[0];
+            datalen = cmd_felica_encap_get_syscode(&card);
             break;
-        case CMD_FELICA_THROUGH_NDA_A4:
-            printf("\tNDA_A4\n");
-            build_response(11);
-            resp->payload[0] = 0x00;
+        case CMD_FELICA_THROUGH_POLL:
+            datalen = cmd_felica_encap_poll(&card);
             break;
         case CMD_FELICA_THROUGH_READ:
-            printf("\tREAD\n");
-            uint16_t service = req->other.service_code[0] << 8 | req->other.service_code[1];
-            uint16_t block = req->other.block_list[0][0] << 8 | req->other.block_list[0][1];
-            for (int i = 0; i < req->other.block_num; i++) {
-                //if (pn532_felica_read_no_encrypt(req->other.service_code, 1, req->other.block_list, resp->blocks[i])) {
-                    memset(resp->other.blocks[i], 0, 16);
-                //}
-            }
-            resp->other.rw_status[0] = 0;
-            resp->other.rw_status[1] = 0;
-            resp->other.block_num = req->other.block_num;
-            build_response(13 + resp->other.block_num * 16);
-            break;
-        case CMD_FELICA_THROUGH_WRITE:
-            printf("\tWRITE\n");
-            build_response(12);
-            resp->other.rw_status[0] = 0;
-            resp->other.rw_status[1] = 0;
+            datalen = cmd_felica_encap_read();
             break;
         default:
-            printf("\tUnknown through: %02x\n", code);
-            build_response(0);
-            response.status = STATUS_OK;
+            printf("Unknown code %d\n", encap_req->code);
+            break;
     }
-    resp->encap.len = response.payload_len;
 
-    printf("Felica Thru Response:");
+    if (datalen < 0) {
+        simple_response(STATUS_FELICA_ERROR);
+        return;
+    }
+
+    felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
+    build_response(sizeof(*encap_resp) + datalen);
+    encap_resp->len = response.payload_len;
+    encap_resp->code = encap_req->code + 1;
+    memcpy(encap_resp->idm, card.idm, 8);
+
+    send_response();
+
+    printf("Felica Encap Response:");
     for (int i = 0; i < response.payload_len; i++) {
         printf(" %02x", response.payload[i]);
     }
     printf("\n");
-    send_response();
 }
 
 static uint32_t led_color;
@@ -399,7 +475,7 @@ static void aime_handle_frame()
             cmd_detect_card();
             break;
         case CMD_FELICA_THROUGH:
-            cmd_felica_thru();
+            cmd_felica_encap();
             break;
 
         case CMD_CARD_SELECT:
