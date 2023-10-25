@@ -322,19 +322,12 @@ static int cmd_felica_encap_read()
     }
     printf("\n");
 
-    uint8_t *service = req_data + 8;
-    uint8_t svc_num = service[0];
-    uint16_t svc_codes[svc_num];
-    for (int i = 0; i < svc_num; i++) {
-        svc_codes[i] = service[i + 1] | (service[i + 2] << 8);
+    if (req_data[8] != 1) {
+        printf("Felica Encap READ Error: service_num != 1\n");
+        return -1;
     }
 
-    uint8_t *block = req_data + 9 + svc_num * 2;
-    uint8_t block_num = block[0];
-    uint16_t block_list[block_num];
-    for (int i = 0; i < block_num; i++) {
-        block_list[i] = (block[i + 1] << 8) | block[i + 2];
-    }
+    uint16_t svc_code = req_data[9] | (req_data[10] << 8);
 
     typedef struct __attribute__((packed)) {
         uint8_t rw_status[2];
@@ -345,10 +338,14 @@ static int cmd_felica_encap_read()
     felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
     encap_read_resp_t *read_resp = (encap_read_resp_t *) encap_resp->data;
 
-    if (!pn532_felica_read_wo_encrypt(svc_num, svc_codes, block_num, block_list,
-                                      read_resp->block_data)) {
-        printf("Felica READ failed\n");
-        return -1;
+    uint8_t *block = req_data + 11;
+    uint8_t block_num = block[0];
+
+    memset(read_resp->block_data, 0, sizeof(read_resp->block_data));
+
+    for (int i = 0; i < block_num; i++) {
+        uint16_t block_id = (block[i * 2 + 1] << 8) | block[i * 2 + 2];
+        pn532_felica_read_wo_encrypt(svc_code, block_id, read_resp->block_data[i]);
     }
 
     read_resp->rw_status[0] = 0x00;
@@ -358,20 +355,21 @@ static int cmd_felica_encap_read()
     return sizeof(*read_resp);
 }
 
-#if 0
+static int cmd_felica_encap_write()
+{
+    printf("\tWRITE\n");
+    felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
+    encap_resp->data[0] = 0;
+    encap_resp->data[1] = 0;
+    return 2;
+}
 
-        break;
+#if 0
 
     case CMD_FELICA_THROUGH_NDA_A4:
         printf("\tNDA_A4\n");
         build_response(11);
         resp->payload[0] = 0x00;
-        break;
-    case CMD_FELICA_THROUGH_WRITE:
-        printf("\tWRITE\n");
-        build_response(12);
-        resp->other.rw_status[0] = 0;
-        resp->other.rw_status[1] = 0;
         break;
     default:
         printf("\tUnknown through: %02x\n", code);
@@ -405,6 +403,9 @@ static void cmd_felica_encap()
             break;
         case CMD_FELICA_THROUGH_READ:
             datalen = cmd_felica_encap_read();
+            break;
+        case CMD_FELICA_THROUGH_WRITE:
+            datalen = cmd_felica_encap_write();
             break;
         default:
             printf("Unknown code %d\n", encap_req->code);

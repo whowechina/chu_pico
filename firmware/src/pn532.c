@@ -348,12 +348,6 @@ int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, u
     memcpy(cmd_buf + 3, felica_poll_cache.idm, 8);
     memcpy(cmd_buf + 11, param, param_len);
 
-    printf("IndataEx [%d]: ", cmd_len);
-    for (int i = 0; i < cmd_len; i++) {
-        printf(" %02x", cmd_buf[i]);
-    }
-    printf("\n");
-
     int ret = pn532_write_command(0x40, cmd_buf, sizeof(cmd_buf));
     if (ret < 0) {
         printf("Failed send felica command\n");
@@ -361,11 +355,6 @@ int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, u
     }
 
     int result = pn532_read_response(0x40, readbuf, sizeof(readbuf));
-    printf("Result: %d - ", result);
-    for (int i = 0; i < result; i++) {
-        printf(" %02x", readbuf[i]);
-    }
-    printf("\n");
 
     int outlen = readbuf[1] - 1;
     if (readbuf[0] & 0x3f != 0 || result - 2 != outlen) {
@@ -378,36 +367,14 @@ int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, u
 }
 
 
-bool pn532_felica_read_wo_encrypt(uint8_t svc_num, const uint16_t *svc_codes,
-                                  uint8_t block_num, const uint16_t *block_list,
-                                  uint8_t block_data[][16])
+bool pn532_felica_read_wo_encrypt(uint16_t svc_code, uint16_t block_id, uint8_t block_data[16])
 {
-    uint8_t param_len = 1 + 2 * svc_num + 1 + 2 * block_num;
-    uint8_t param[param_len];
+    uint8_t param[] = { 1, svc_code & 0xff, svc_code >> 8,
+                                 1, block_id >> 8, block_id & 0xff };
 
-    uint8_t *service = param;
-    service[0] = svc_num;
-    for (int i = 0; i < svc_num; i++) {
-        service[1 + 2 * i] = svc_codes[i] & 0xff;
-        service[2 + 2 * i] = svc_codes[i] >> 8;
-    }
+    int result = pn532_felica_command(0x06, param, sizeof(param), readbuf);
 
-    uint8_t *block = param + 1 + 2 * svc_num;
-    block[0] = block_num;
-    for (int i = 0; i < block_num; i++) {
-        block[1 + 2 * i] = block_list[i] >> 8;
-        block[2 + 2 * i] = block_list[i] & 0xff;
-    }
-
-    printf("PN532 Felica READ [%d]: ", param_len);
-    for (int i = 0; i < param_len; i++) {
-        printf("%02x ", param[i]);
-    }
-    printf("\n");
-
-    int result = pn532_felica_command(0x06, param, param_len, readbuf);
-
-    if (result != 12 + 16 * block_num || readbuf[9] != 0 || readbuf[10] != 0) {
+    if (result != 12 + 16 || readbuf[9] != 0 || readbuf[10] != 0) {
         printf("PN532 Felica READ read response failed %d %02x %02x\n",
                result, readbuf[9], readbuf[10]);
         for (int i = 0; i < result; i++) {
@@ -418,9 +385,7 @@ bool pn532_felica_read_wo_encrypt(uint8_t svc_num, const uint16_t *svc_codes,
     }
 
     const uint8_t *result_data = readbuf + 12; 
-    for (int i = 0; i < block_num; i++) {
-        memcpy(block_data[i], result_data + 16 * i, 16);
-    }
+    memcpy(block_data, result_data, 16);
 
     return true;
 }
