@@ -176,9 +176,7 @@ int pn532_write_command(uint8_t cmd, const uint8_t *param, uint8_t len)
     data[0] = PN532_HOSTTOPN532;
     data[1] = cmd;
 
-    for (int i = 0; i < len; i++) {
-        data[2 + i] = param[i];
-    }
+    memcpy(data + 2, param, len);
 
     return pn532_write_data(data, len + 2);
 }
@@ -313,6 +311,7 @@ static struct __attribute__((packed)) {
     uint8_t idm[8];
     uint8_t pmm[8];
     uint8_t syscode[2];
+    uint8_t inlist_tag;
 } felica_poll_cache;
 
 bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2])
@@ -324,11 +323,12 @@ bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2])
     }
 
     int result = pn532_read_response(0x4a, readbuf, sizeof(readbuf));
-    if (result != 22 || readbuf[1] != 1 || readbuf[2] != 20) {
+    if (result != 22 || readbuf[0] != 1 || readbuf[2] != 20) {
         return false;
     }
 
     memcpy(&felica_poll_cache, readbuf + 4, 18);
+    felica_poll_cache.inlist_tag = readbuf[1];
 
     memcpy(uid, readbuf + 4, 8);
     memcpy(pmm, readbuf + 12, 8);
@@ -337,44 +337,83 @@ bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2])
     return true;
 }
 
-bool pn532_felica_read_no_encrypt(uint8_t svc_num, const uint16_t *svc_codes,
+int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, uint8_t *outbuf)
+{
+    int cmd_len = param_len + 11;
+    uint8_t cmd_buf[cmd_len + 1];
+
+    cmd_buf[0] = felica_poll_cache.inlist_tag;
+    cmd_buf[1] = cmd_len;
+    cmd_buf[2] = cmd;
+    memcpy(cmd_buf + 3, felica_poll_cache.idm, 8);
+    memcpy(cmd_buf + 11, param, param_len);
+
+    printf("IndataEx [%d]: ", cmd_len);
+    for (int i = 0; i < cmd_len; i++) {
+        printf(" %02x", cmd_buf[i]);
+    }
+    printf("\n");
+
+    int ret = pn532_write_command(0x40, cmd_buf, sizeof(cmd_buf));
+    if (ret < 0) {
+        printf("Failed send felica command\n");
+        return -1;
+    }
+
+    int result = pn532_read_response(0x40, readbuf, sizeof(readbuf));
+    printf("Result: %d - ", result);
+    for (int i = 0; i < result; i++) {
+        printf(" %02x", readbuf[i]);
+    }
+    printf("\n");
+
+    int outlen = readbuf[1] - 1;
+    if (readbuf[0] & 0x3f != 0 || result - 2 != outlen) {
+        return -1;
+    }
+
+    memmove(outbuf, readbuf + 2, outlen);
+
+    return outlen;
+}
+
+
+bool pn532_felica_read_wo_encrypt(uint8_t svc_num, const uint16_t *svc_codes,
                                   uint8_t block_num, const uint16_t *block_list,
                                   uint8_t block_data[][16])
 {
-    uint8_t param_len = 8 + 1 + 2 * svc_num + 1 + 2 * block_num;
+    uint8_t param_len = 1 + 2 * svc_num + 1 + 2 * block_num;
     uint8_t param[param_len];
-    memcpy(param, felica_poll_cache.idm, 8);
 
-    uint8_t *service = param + 8;
+    uint8_t *service = param;
     service[0] = svc_num;
     for (int i = 0; i < svc_num; i++) {
-        service[2 + 2 * i] = svc_codes[i] >> 8;
         service[1 + 2 * i] = svc_codes[i] & 0xff;
+        service[2 + 2 * i] = svc_codes[i] >> 8;
     }
 
-    uint8_t *block = param + 9 + 2 * svc_num;
+    uint8_t *block = param + 1 + 2 * svc_num;
     block[0] = block_num;
     for (int i = 0; i < block_num; i++) {
         block[1 + 2 * i] = block_list[i] >> 8;
         block[2 + 2 * i] = block_list[i] & 0xff;
     }
 
-    printf("PN532 Felica READ param: ");
+    printf("PN532 Felica READ [%d]: ", param_len);
     for (int i = 0; i < param_len; i++) {
         printf("%02x ", param[i]);
     }
     printf("\n");
 
-    int ret = pn532_write_command(0x06, param, param_len);
-    if (ret < 0) {
-        printf("PN532 Felica READ write command failed\n");
-        return false;
-    }
+    int result = pn532_felica_command(0x06, param, param_len, readbuf);
 
-    int result = pn532_read_response(0x06, readbuf, sizeof(readbuf));
     if (result != 12 + 16 * block_num || readbuf[9] != 0 || readbuf[10] != 0) {
         printf("PN532 Felica READ read response failed %d %02x %02x\n",
                result, readbuf[9], readbuf[10]);
+        for (int i = 0; i < result; i++) {
+            printf(" %02x", readbuf[i]);
+        }
+        printf("\n");
         return false;
     }
 

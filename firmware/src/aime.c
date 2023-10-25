@@ -345,7 +345,7 @@ static int cmd_felica_encap_read()
     felica_encap_resp_t *encap_resp = (felica_encap_resp_t *) response.payload;
     encap_read_resp_t *read_resp = (encap_read_resp_t *) encap_resp->data;
 
-    if (!pn532_felica_read_no_encrypt(svc_num, svc_codes, block_num, block_list,
+    if (!pn532_felica_read_wo_encrypt(svc_num, svc_codes, block_num, block_list,
                                       read_resp->block_data)) {
         printf("Felica READ failed\n");
         return -1;
