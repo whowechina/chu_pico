@@ -370,7 +370,7 @@ int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, u
 bool pn532_felica_read_wo_encrypt(uint16_t svc_code, uint16_t block_id, uint8_t block_data[16])
 {
     uint8_t param[] = { 1, svc_code & 0xff, svc_code >> 8,
-                                 1, block_id >> 8, block_id & 0xff };
+                        1, block_id >> 8, block_id & 0xff };
 
     int result = pn532_felica_command(0x06, param, sizeof(param), readbuf);
 
@@ -388,4 +388,23 @@ bool pn532_felica_read_wo_encrypt(uint16_t svc_code, uint16_t block_id, uint8_t 
     memcpy(block_data, result_data, 16);
 
     return true;
+}
+
+bool pn532_felica_write_wo_encrypt(uint16_t svc_code, uint16_t block_id, const uint8_t block_data[16])
+{
+    uint8_t param[] = { 1, svc_code & 0xff, svc_code >> 8,
+                        1, block_id >> 8, block_id & 0xff };
+
+    int result = pn532_felica_command(0x08, param, sizeof(param), readbuf);
+
+    printf("PN532 Felica Write response %d\n", result);
+    if (result < 0) {
+        return false;
+    }
+
+    for (int i = 0; i < result; i++) {
+        printf(" %02x", readbuf[i]);
+    }
+    printf("\n");
+    return false;
 }
