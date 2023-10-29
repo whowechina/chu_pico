@@ -331,6 +331,59 @@ float getSignalRateLimit()
     return (float)read_reg16(FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT) / (1 << 7);
 }
 
+// Decode sequence step timeout in MCLKs from register value
+// based on VL53L0X_decode_timeout()
+// Note: the original function returned a uint32_t, but the return value is
+// always stored in a uint16_t.
+uint16_t decodeTimeout(uint16_t reg_val)
+{
+    // format: "(LSByte * 2^MSByte) + 1"
+    return (uint16_t)((reg_val & 0x00FF) <<
+           (uint16_t)((reg_val & 0xFF00) >> 8)) + 1;
+}
+
+// Encode sequence step timeout register value from timeout in MCLKs
+// based on VL53L0X_encode_timeout()
+uint16_t encodeTimeout(uint32_t timeout_mclks)
+{
+    // format: "(LSByte * 2^MSByte) + 1"
+
+    uint32_t ls_byte = 0;
+    uint16_t ms_byte = 0;
+
+    if (timeout_mclks > 0) {
+        ls_byte = timeout_mclks - 1;
+
+        while ((ls_byte & 0xFFFFFF00) > 0) {
+            ls_byte >>= 1;
+            ms_byte++;
+        }
+
+        return (ms_byte << 8) | (ls_byte & 0xFF);
+    }
+    else {
+        return 0;
+    }
+}
+
+// Convert sequence step timeout from MCLKs to microseconds with given VCSEL period in PCLKs
+// based on VL53L0X_calc_timeout_us()
+uint32_t timeoutMclksToMicroseconds(uint16_t timeout_period_mclks, uint8_t vcsel_period_pclks)
+{
+    uint32_t macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
+
+    return ((timeout_period_mclks * macro_period_ns) + 500) / 1000;
+}
+
+// Convert sequence step timeout from microseconds to MCLKs with given VCSEL period in PCLKs
+// based on VL53L0X_calc_timeout_mclks()
+uint32_t timeoutMicrosecondsToMclks(uint32_t timeout_period_us, uint8_t vcsel_period_pclks)
+{
+    uint32_t macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
+
+    return (((timeout_period_us * 1000) + (macro_period_ns / 2)) / macro_period_ns);
+}
+
 // Set the measurement timing budget in microseconds, which is the time allowed
 // for one measurement; the ST API and this library take care of splitting the
 // timing budget among the sub-steps in the ranging sequence. A longer timing
@@ -403,7 +456,7 @@ bool setMeasurementTimingBudget(uint32_t budget_us)
 
         uint32_t final_range_timeout_mclks =
             timeoutMicrosecondsToMclks(final_range_timeout_us,
-                                                                 timeouts.final_range_vcsel_period_pclks);
+                                       timeouts.final_range_vcsel_period_pclks);
 
         if (enables.pre_range)
         {
@@ -720,7 +773,7 @@ void vl53l0x_stop_continuous()
 // single-shot range measurement)
 uint16_t readRangeContinuousMillimeters()
 {
-    if (read_reg(RESULT_INTERRUPT_STATUS) & 0x07 == 0) {
+    if ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
         return 65535;
     }
 
@@ -854,66 +907,13 @@ void getSequenceStepTimeouts(SequenceStepEnables const * enables, SequenceStepTi
                                    timeouts->final_range_vcsel_period_pclks);
 }
 
-// Decode sequence step timeout in MCLKs from register value
-// based on VL53L0X_decode_timeout()
-// Note: the original function returned a uint32_t, but the return value is
-// always stored in a uint16_t.
-uint16_t decodeTimeout(uint16_t reg_val)
-{
-    // format: "(LSByte * 2^MSByte) + 1"
-    return (uint16_t)((reg_val & 0x00FF) <<
-           (uint16_t)((reg_val & 0xFF00) >> 8)) + 1;
-}
-
-// Encode sequence step timeout register value from timeout in MCLKs
-// based on VL53L0X_encode_timeout()
-uint16_t encodeTimeout(uint32_t timeout_mclks)
-{
-    // format: "(LSByte * 2^MSByte) + 1"
-
-    uint32_t ls_byte = 0;
-    uint16_t ms_byte = 0;
-
-    if (timeout_mclks > 0) {
-        ls_byte = timeout_mclks - 1;
-
-        while ((ls_byte & 0xFFFFFF00) > 0) {
-            ls_byte >>= 1;
-            ms_byte++;
-        }
-
-        return (ms_byte << 8) | (ls_byte & 0xFF);
-    }
-    else {
-        return 0;
-    }
-}
-
-// Convert sequence step timeout from MCLKs to microseconds with given VCSEL period in PCLKs
-// based on VL53L0X_calc_timeout_us()
-uint32_t timeoutMclksToMicroseconds(uint16_t timeout_period_mclks, uint8_t vcsel_period_pclks)
-{
-    uint32_t macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
-
-    return ((timeout_period_mclks * macro_period_ns) + 500) / 1000;
-}
-
-// Convert sequence step timeout from microseconds to MCLKs with given VCSEL period in PCLKs
-// based on VL53L0X_calc_timeout_mclks()
-uint32_t timeoutMicrosecondsToMclks(uint32_t timeout_period_us, uint8_t vcsel_period_pclks)
-{
-    uint32_t macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
-
-    return (((timeout_period_us * 1000) + (macro_period_ns / 2)) / macro_period_ns);
-}
-
 // based on VL53L0X_perform_single_ref_calibration()
 bool performSingleRefCalibration(uint8_t vhv_init_byte)
 {
     write_reg(SYSRANGE_START, 0x01 | vhv_init_byte); // VL53L0X_REG_SYSRANGE_MODE_START_STOP
 
     uint32_t start = time_us_32();
-    while (read_reg(RESULT_INTERRUPT_STATUS) & 0x07 == 0) {
+    while ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
         if (time_us_32() - start > IO_TIMEOUT_US) {
             return false;
         }

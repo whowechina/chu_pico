@@ -103,7 +103,7 @@ static bool read_ack()
         return false;
     }
 
-    int result = read_frame(resp, 6);
+    read_frame(resp, 6);
 
     const uint8_t expect_ack[] = {0, 0, 0xff, 0, 0xff, 0};
     if (memcmp(resp, expect_ack, 6) != 0) {
@@ -131,7 +131,7 @@ int pn532_write_data(const uint8_t *data, uint8_t len)
     frame[5 + len] = ~checksum;
     frame[6 + len] = PN532_POSTAMBLE;
 
-    int result = write_frame(frame, 7 + len);
+    write_frame(frame, 7 + len);
 
     return read_ack();
 }
@@ -140,7 +140,7 @@ int pn532_read_data(uint8_t *data, uint8_t len)
 {
     uint8_t resp[len + 7];
 
-    int result = read_frame(resp, len + 7);
+    read_frame(resp, len + 7);
 
     if (resp[0] != PN532_PREAMBLE ||
         resp[1] != PN532_STARTCODE1 ||
@@ -264,7 +264,7 @@ uint32_t pn532_firmware_ver()
 bool pn532_config_sam()
 {
     uint8_t param[] = {0x01, 0x14, 0x01};
-    int result = pn532_write_command(0x14, param, 3);
+    pn532_write_command(0x14, param, 3);
 
     return pn532_read_response(0x14, NULL, 0) == 0;
 }
@@ -273,7 +273,7 @@ bool pn532_config_sam()
 bool pn532_set_rf_field(uint8_t auto_rf, uint8_t on_off)
 {
     uint8_t param[] = { 1, auto_rf | on_off };
-    int result = pn532_write_command(0x32, param, 2);
+    pn532_write_command(0x32, param, 2);
 
     return pn532_read_response(0x32, NULL, 0) >= 0;
 }
@@ -337,6 +337,47 @@ bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2])
     return true;
 }
 
+bool pn532_mifare_auth(const uint8_t uid[4], uint8_t block_id, uint8_t key_id, const uint8_t *key)
+{
+    uint8_t param[] = { 1, key_id ? 1 : 0, block_id,
+                       key[0], key[1], key[2], key[3], key[4], key[5],
+                       uid[0], uid[1], uid[2], uid[3] };
+    int ret = pn532_write_command(0x40, param, sizeof(param));
+    if (ret < 0) {
+        printf("Failed mifare auth command\n");
+        return false;
+    }
+    int result = pn532_read_response(0x40, readbuf, sizeof(readbuf));
+    if (readbuf[0] != 0) {
+        printf("PN532 Mifare AUTH failed %d %02x\n", result, readbuf[0]);
+        return false;
+    }
+
+    return true;
+}
+
+bool pn532_mifare_read(uint8_t block_id, uint8_t block_data[16])
+{
+    uint8_t param[] = { 1, 0x30, block_id };
+
+    int ret = pn532_write_command(0x40, param, sizeof(param));
+    if (ret < 0) {
+        printf("Failed mifare read command\n");
+        return false;
+    }
+
+    int result = pn532_read_response(0x40, readbuf, sizeof(readbuf));
+
+    if (readbuf[0] != 0 || result != 17) {
+        printf("PN532 Mifare READ failed %d %02x\n", result, readbuf[0]);
+        return false;
+    }
+
+    memmove(block_data, readbuf + 1, 16);
+
+    return true;
+}
+
 int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, uint8_t *outbuf)
 {
     int cmd_len = param_len + 11;
@@ -357,7 +398,7 @@ int pn532_felica_command(uint8_t cmd, const uint8_t *param, uint8_t param_len, u
     int result = pn532_read_response(0x40, readbuf, sizeof(readbuf));
 
     int outlen = readbuf[1] - 1;
-    if (readbuf[0] & 0x3f != 0 || result - 2 != outlen) {
+    if ((readbuf[0] & 0x3f) != 0 || result - 2 != outlen) {
         return -1;
     }
 
@@ -375,7 +416,7 @@ bool pn532_felica_read_wo_encrypt(uint16_t svc_code, uint16_t block_id, uint8_t 
     int result = pn532_felica_command(0x06, param, sizeof(param), readbuf);
 
     if (result != 12 + 16 || readbuf[9] != 0 || readbuf[10] != 0) {
-        printf("PN532 Felica READ read response failed %d %02x %02x\n",
+        printf("PN532 Felica READ read failed %d %02x %02x\n",
                result, readbuf[9], readbuf[10]);
         for (int i = 0; i < result; i++) {
             printf(" %02x", readbuf[i]);
@@ -397,8 +438,8 @@ bool pn532_felica_write_wo_encrypt(uint16_t svc_code, uint16_t block_id, const u
 
     int result = pn532_felica_command(0x08, param, sizeof(param), readbuf);
 
-    printf("PN532 Felica Write response %d\n", result);
     if (result < 0) {
+        printf("PN532 Felica WRITE failed %d\n", result);
         return false;
     }
 

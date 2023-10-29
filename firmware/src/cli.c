@@ -94,7 +94,7 @@ int cli_extract_non_neg_int(const char *param, int len)
     }
     int result = 0;
     for (int i = 0; i < len; i++) {
-        if (!isdigit(param[i])) {
+        if (!isdigit((uint8_t)param[i])) {
             return -1;
         }
         result = result * 10 + param[i] - '0';

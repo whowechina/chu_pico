@@ -13,7 +13,7 @@ function(make_firmware board board_def)
 
     pico_generate_pio_header(${board} ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
     
-    target_compile_options(${board} PRIVATE -Wfatal-errors -O3)
+    target_compile_options(${board} PRIVATE -Wall -Werror -Wfatal-errors -O3)
     target_include_directories(${board} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
     target_include_directories(${board} PRIVATE 
                                ${BTSTACK_ROOT}/src

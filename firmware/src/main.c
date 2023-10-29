@@ -79,7 +79,7 @@ static void gen_joy_report()
 }
 
 const uint8_t keycode_table[128][2] = { HID_ASCII_TO_KEYCODE };
-const char keymap[38 + 1] = NKRO_KEYMAP; // 32 keys, 6 air keys, 1 terminator
+const uint8_t keymap[38 + 1] = NKRO_KEYMAP; // 32 keys, 6 air keys, 1 terminator
 static void gen_nkro_report()
 {
     for (int i = 0; i < 32; i++) {
@@ -137,7 +137,7 @@ static void run_lights()
         uint8_t b = aime_color;
 
         uint32_t blink = now / 100000;
-        aime_color = (now & 1) ? rgb32(r, g, b, false) : 0;
+        aime_color = (blink & 1) ? rgb32(r, g, b, false) : 0;
 
         rgb_set_color(34, aime_color);
         rgb_set_color(35, aime_color);

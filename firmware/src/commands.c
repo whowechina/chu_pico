@@ -23,10 +23,10 @@
 static void disp_colors()
 {
     printf("[Colors]\n");
-    printf("  Key upper: %06x, lower: %06x, both: %06x, off: %06x\n", 
+    printf("  Key upper: %06lx, lower: %06lx, both: %06lx, off: %06lx\n", 
            chu_cfg->colors.key_on_upper, chu_cfg->colors.key_on_lower,
            chu_cfg->colors.key_on_both, chu_cfg->colors.key_off);
-    printf("  Gap: %06x\n", chu_cfg->colors.gap);
+    printf("  Gap: %06lx\n", chu_cfg->colors.gap);
 }
 
 static void disp_style()
@@ -263,7 +263,7 @@ static void handle_filter(int argc, char *argv[])
     disp_sense();
 }
 
-static uint8_t *extract_key(const char *param)
+static int8_t *extract_key(const char *param)
 {
     int len = strlen(param);
 
@@ -306,7 +306,7 @@ static void handle_sense(int argc, char *argv[])
                         "  >sense +\n"
                         "  >sense -\n"
                         "  >sense 1A +\n"
-                        "  >sense 13B -\n";
+                        "  >sense 13B -\n"
                         "  >sense * 0\n";
     if ((argc < 1) || (argc > 2)) {
         printf(usage);
@@ -327,7 +327,7 @@ static void handle_sense(int argc, char *argv[])
                 sense_do_op(&chu_cfg->sense.keys[i], op[0]);
             }
         } else {
-            uint8_t *key = extract_key(argv[0]);
+            int8_t *key = extract_key(argv[0]);
             if (!key) {
                 printf(usage);
                 return;

@@ -76,7 +76,7 @@ const char *hw_version[] = { "TN32MSEC003S H/W Ver3.0", "837-15396" };
 const char *led_info[] = { "15084\xFF\x10\x00\x12", "000-00000\xFF\x11\x40" };
 static int baudrate_mode = 0;
 
-static void aime_set_baudrate(int mode)
+void aime_set_baudrate(int mode)
 {
     baudrate_mode = (mode == 0) ? 0 : 1;
 }
@@ -91,9 +91,7 @@ void aime_init(int interface)
     pn532_config_sam();
 }
 
-typedef struct __attribute__((packed)) {
-
-} felica_req_t;
+static uint8_t mifare_keys[2][6]; // 'KeyA' and 'KeyB'
 
 static union __attribute__((packed)) {
     struct {
@@ -117,6 +115,10 @@ static union __attribute__((packed)) {
         uint8_t payload_len;
         union {
             struct {
+                uint8_t uid[4];
+                uint8_t block_id;
+            } mifare;
+            struct {
                 uint8_t idm[8];
                 uint8_t len;
                 uint8_t code;
@@ -135,8 +137,6 @@ struct {
     bool escaping;
     uint64_t time;
 } req_ctx;
-
-static uint8_t key_sets[2][6]; // 'KeyA' and 'KeyB'
 
 static void build_response(int payload_len)
 {
@@ -170,7 +170,7 @@ static void send_response()
     tud_cdc_n_write_flush(aime_interface);
 }
 
-static void simple_response(uint8_t status)
+static void send_simple_response(uint8_t status)
 {
     build_response(0);
     response.status = status;
@@ -179,8 +179,8 @@ static void simple_response(uint8_t status)
 
 static void cmd_to_normal_mode()
 {
-    simple_response(pn532_firmware_ver() ? STATUS_NFCRW_FIRMWARE_UP_TO_DATE
-                                         : STATUS_NFCRW_INIT_ERROR);
+    send_simple_response(pn532_firmware_ver() ? STATUS_NFCRW_FIRMWARE_UP_TO_DATE
+                                              : STATUS_NFCRW_INIT_ERROR);
 }
 
 static void cmd_fake_version(const char *version[])
@@ -191,25 +191,16 @@ static void cmd_fake_version(const char *version[])
     send_response();
 }
 
-static void cmd_get_hw_version()
+static void cmd_key_set(uint8_t key[6])
 {
-    build_response(2);
-    response.payload[0] = 0x01;
-    response.payload[1] = 0x00;
-    send_response();
-}
-
-static void cmd_key_set(int type)
-{
-    memcpy(key_sets[type], request.payload, 6);
-    build_response(0);
-    send_response();
+    memcpy(key, request.payload, 6);
+    send_simple_response(STATUS_OK);
 }
 
 static void cmd_set_polling(bool enabled)
 {
     pn532_set_rf_field(0, enabled ? 1 : 0);
-    simple_response(STATUS_OK);
+    send_simple_response(STATUS_OK);
 }
 
 static void cmd_detect_card()
@@ -218,26 +209,31 @@ static void cmd_detect_card()
         uint8_t count;
         uint8_t type;
         uint8_t id_len;
-        uint8_t idm[8];
-        uint8_t pmm[8];
-        uint8_t syscode[2];
+        union {
+            struct {
+                uint8_t idm[8];
+                uint8_t pmm[8];
+                uint8_t syscode[2];
+            };
+            uint8_t uid[6];
+        };
     } card_info_t;
     
     card_info_t *card = (card_info_t *) response.payload;
 
     int len = sizeof(card->idm);
-    if (pn532_poll_mifare(card->idm, &len)) {
+    if (pn532_poll_mifare(card->uid, &len)) {
         build_response(len > 4 ? 10 : 7);
         card->count = 1;
         card->type = 0x10;
         card->id_len = len;
-        printf("Card Mifare %d\n", card->id_len);
+        printf("Detected Mifare %d\n", card->id_len);
     } else if (pn532_poll_felica(card->idm, card->pmm, card->syscode)) {
         build_response(19);
         card->count = 1;
         card->type = 0x20;
         card->id_len = 16;
-        printf("Card Felica - ");
+        printf("Detected Felica -");
         for (int i = 0; i < 8; i++) {
             printf(" %02x", card->idm[i]);
         }
@@ -253,6 +249,36 @@ static void cmd_detect_card()
         response.status = STATUS_OK;
     }
     send_response();
+}
+
+static void cmd_card_select()
+{
+    printf("CARD SELECT %d\n", request.payload_len);
+    send_simple_response(STATUS_OK);
+}
+
+static void cmd_mifare_auth(int type)
+{
+    printf("MIFARE AUTH\n");
+    pn532_mifare_auth(request.mifare.uid, request.mifare.block_id, type, mifare_keys[type]);
+    send_simple_response(STATUS_OK);
+}
+
+static void cmd_mifare_read()
+{
+    printf("MIFARE READ %02x %02x %02x %02x %02x\n", request.mifare.block_id,
+            request.mifare.uid[0], request.mifare.uid[1], request.mifare.uid[2],
+           request.mifare.uid[3]);
+    build_response(16);
+    memset(response.payload, 0, 16);
+    pn532_mifare_read(request.mifare.block_id, response.payload);
+    send_response();
+}
+
+static void cmd_mifare_halt()
+{
+    printf("MIFARE HALT\n");
+    send_simple_response(STATUS_OK);
 }
 
 typedef struct __attribute__((packed)) {
@@ -327,7 +353,7 @@ static int cmd_felica_read()
         if (block_id == 0x8082) {
             memcpy(read_resp->block_data[i], felica_resp->idm, 8);
         }
-//        pn532_felica_read_wo_encrypt(svc_code, block_id, read_resp->block_data[i]);
+        pn532_felica_read_wo_encrypt(svc_code, block_id, read_resp->block_data[i]);
     }
 
     read_resp->rw_status[0] = 0x00;
@@ -348,20 +374,30 @@ static int cmd_felica_write()
     }
 
     uint16_t svc_code = req_data[9] | (req_data[10] << 8);
-
+    
     uint8_t *block = req_data + 11;
     uint8_t block_num = block[0];
 
     felica_resp_t *felica_resp = (felica_resp_t *) response.payload;
     uint8_t *rw_status = felica_resp->data;
 
+    printf("svc code: %04x\n", svc_code);
+    printf("blocks:");
+    for (int i = 0; i < block_num; i++) {
+        uint16_t block_id = (block[i * 2 + 1] << 8) | block[i * 2 + 2];
+        printf(" %04x", block_id);
+    }
+    printf("\n");
+
+    uint8_t *block_data = block + 1 + block_num * 2;
+
     rw_status[0] = 0x00;
     rw_status[1] = 0x00;
 
     for (int i = 0; i < block_num; i++) {
+        printf("writing %02x %02x\n", block_data[i * 16], block_data[i * 16 + 15]);
         uint16_t block_id = (block[i * 2 + 1] << 8) | block[i * 2 + 2];
-        int result = 0;
-        //pn532_felica_write_wo_encrypt(svc_code, block_id, read_resp->block_data[i]);
+        int result = pn532_felica_write_wo_encrypt(svc_code, block_id, block_data + i * 16);
         if (result < 0) {
             rw_status[0] = 0x01;
             rw_status[1] = 0x01;
@@ -389,7 +425,7 @@ static void cmd_felica()
     card_id_t card;
 
     if (!pn532_poll_felica(card.idm, card.pmm, card.syscode)) {
-        simple_response(STATUS_FELICA_ERROR);        
+        send_simple_response(STATUS_FELICA_ERROR);        
     }
 
     uint8_t felica_code = request.felica.code;
@@ -420,7 +456,7 @@ static void cmd_felica()
     }
 
     if (datalen < 0) {
-        simple_response(STATUS_FELICA_ERROR);
+        send_simple_response(STATUS_FELICA_ERROR);
         return;
     }
 
@@ -466,11 +502,11 @@ static void aime_handle_frame()
             break;
         case CMD_MIFARE_KEY_SET_A:
             printf("CMD_MIFARE_KEY_SET_A\n");
-            cmd_key_set(0);
+            cmd_key_set(mifare_keys[0]);
             break;
         case CMD_MIFARE_KEY_SET_B:
             printf("CMD_MIFARE_KEY_SET_B\n");
-            cmd_key_set(1);
+            cmd_key_set(mifare_keys[1]);
             break;
 
         case CMD_START_POLLING:
@@ -487,9 +523,23 @@ static void aime_handle_frame()
             break;
 
         case CMD_CARD_SELECT:
+            cmd_card_select();
+            break;
+        
+        case CMD_MIFARE_AUTHORIZE_A:
+            cmd_mifare_auth(0);
+            break;
+
         case CMD_MIFARE_AUTHORIZE_B:
+            cmd_mifare_auth(1);
+            break;
+        
         case CMD_MIFARE_READ:
+            cmd_mifare_read();
+            break;
+
         case CMD_CARD_HALT:
+            cmd_mifare_halt();
             break;
 
         case CMD_EXT_BOARD_INFO:
@@ -501,7 +551,7 @@ static void aime_handle_frame()
 
         case CMD_SEND_HEX_DATA:
         case CMD_EXT_TO_NORMAL_MODE:
-            simple_response(STATUS_OK);
+            send_simple_response(STATUS_OK);
             break;
 
         default:
@@ -510,7 +560,7 @@ static void aime_handle_frame()
                 printf(" %02x", request.raw[i]);
             }
             printf("]\n");
-            simple_response(STATUS_OK);
+            send_simple_response(STATUS_OK);
             break;
     }
 }
