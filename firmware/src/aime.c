@@ -44,16 +44,16 @@ enum {
     CMD_SEND_BINDATA_EXEC = 0x64,
     // FeliCa
     CMD_FELICA_PUSH = 0x70,
-    CMD_FELICA_THROUGH = 0x71,
-    CMD_FELICA_THROUGH_POLL = 0x00,
-    CMD_FELICA_THROUGH_READ = 0x06,
-    CMD_FELICA_THROUGH_WRITE = 0x08,
-    CMD_FELICA_THROUGH_GET_SYSTEM_CODE = 0x0C,
-    CMD_FELICA_THROUGH_NDA_A4 = 0xA4,
+    CMD_FELICA_OP = 0x71,
+    CMD_FELICA_OP_POLL = 0x00,
+    CMD_FELICA_OP_READ = 0x06,
+    CMD_FELICA_OP_WRITE = 0x08,
+    CMD_FELICA_OP_GET_SYSTEM_CODE = 0x0C,
+    CMD_FELICA_OP_NDA_A4 = 0xA4,
     // LED board
     CMD_EXT_BOARD_LED = 0x80,
     CMD_EXT_BOARD_LED_RGB = 0x81,
-    CMD_EXT_BOARD_LED_RGB_UNKNOWN = 0x82,  // 未知
+    CMD_EXT_BOARD_LED_RGB_UNKNOWN = 0x82,
     CMD_EXT_BOARD_INFO = 0xf0,
     CMD_EXT_FIRM_SUM = 0xf2,
     CMD_EXT_SEND_HEX_DATA = 0xf3,
@@ -61,7 +61,7 @@ enum {
     CMD_EXT_TO_NORMAL_MODE = 0xf5,
 };
 
-enum {  // 未确认效果
+enum {
     STATUS_OK = 0,
     STATUS_NFCRW_INIT_ERROR = 1,
     STATUS_NFCRW_FIRMWARE_UP_TO_DATE = 3,
@@ -76,9 +76,22 @@ const char *hw_version[] = { "TN32MSEC003S H/W Ver3.0", "837-15396" };
 const char *led_info[] = { "15084\xFF\x10\x00\x12", "000-00000\xFF\x11\x40" };
 static int baudrate_mode = 0;
 
+static struct {
+    bool enabled; // feature enabled
+    bool active; // currently active
+    uint8_t idm[8];
+    const uint8_t pmm[8];
+    const uint8_t syscode[2];
+} virtual_aic = { true, false, "", "\x00\xf1\x00\x00\x00\x01\x43\x00", "\x88\xb4" };
+
 void aime_set_baudrate(int mode)
 {
     baudrate_mode = (mode == 0) ? 0 : 1;
+}
+
+void aime_set_virtual_aic(bool enable)
+{
+    virtual_aic.enabled = enable;
 }
 
 static int aime_interface = -1;
@@ -203,51 +216,110 @@ static void cmd_set_polling(bool enabled)
     send_simple_response(STATUS_OK);
 }
 
-static void cmd_detect_card()
-{
-    typedef struct __attribute__((packed)) {
-        uint8_t count;
-        uint8_t type;
-        uint8_t id_len;
-        union {
-            struct {
-                uint8_t idm[8];
-                uint8_t pmm[8];
-                uint8_t syscode[2];
-            };
-            uint8_t uid[6];
+typedef struct __attribute__((packed)) {
+    uint8_t count;
+    uint8_t type;
+    uint8_t id_len;
+    union {
+        struct {
+            uint8_t idm[8];
+            uint8_t pmm[8];
+            uint8_t syscode[2];
         };
-    } card_info_t;
-    
+        uint8_t uid[6];
+    };
+} card_info_t;
+
+static void handle_mifare_card(const uint8_t *uid, int len)
+{
     card_info_t *card = (card_info_t *) response.payload;
 
-    int len = sizeof(card->idm);
-    if (pn532_poll_mifare(card->uid, &len)) {
-        build_response(len > 4 ? 10 : 7);
-        card->count = 1;
-        card->type = 0x10;
-        card->id_len = len;
-        printf("Detected Mifare %d\n", card->id_len);
-    } else if (pn532_poll_felica(card->idm, card->pmm, card->syscode)) {
-        build_response(19);
-        card->count = 1;
-        card->type = 0x20;
-        card->id_len = 16;
-        printf("Detected Felica -");
-        for (int i = 0; i < 8; i++) {
-            printf(" %02x", card->idm[i]);
-        }
-        printf(",");
-        for (int i = 0; i < 8; i++) {
-            printf(" %02x", card->pmm[i]);
-        }
-        printf(",");
-        printf(" %02x%02x\n", card->syscode[0], card->syscode[1]);
-    } else {
-        build_response(1);
-        card->count = 0;
-        response.status = STATUS_OK;
+    build_response(len > 4 ? 10 : 7);
+    card->count = 1;
+    card->type = 0x10;
+    card->id_len = len;
+
+    memcpy(card->uid, uid, len);
+}
+
+static void handle_felica_card(const uint8_t felica_ids[18])
+{
+    build_response(19);
+    card_info_t *card = (card_info_t *) response.payload;
+
+    card->count = 1;
+    card->type = 0x20;
+    card->id_len = 16;
+    memcpy(card->idm, felica_ids, 8);
+    memcpy(card->pmm, felica_ids + 8, 8);
+}
+
+static void fake_felica_card()
+{
+    build_response(19);
+    card_info_t *card = (card_info_t *) response.payload;
+
+    card->count = 1;
+    card->type = 0x20;
+    card->id_len = 16;
+    memcpy(card->idm, virtual_aic.idm, 8);
+    memcpy(card->pmm, virtual_aic.pmm, 8);
+}
+
+static void handle_no_card()
+{
+    build_response(1);
+    card_info_t *card = (card_info_t *) response.payload;
+
+    card->count = 0;
+    response.status = STATUS_OK;
+}
+
+static void printf_hex(const uint8_t *hex, int len, const char *tail)
+{
+    for (int i = 0; i < len; i ++) {
+        printf(" %02x", hex[i]);
     }
+    printf("%s", tail);
+}
+
+static void cmd_detect_card()
+{
+    uint8_t buf[18];
+
+    virtual_aic.active = false;
+
+    int len = sizeof(buf);
+    if (pn532_poll_mifare(buf, &len)) {
+        printf("Detected Mifare - ");
+        printf_hex(buf, len, "\n");
+
+        if (virtual_aic.enabled) {
+            virtual_aic.active = true;
+            memset(virtual_aic.idm, 0, 8);
+            memcpy(virtual_aic.idm, "\x01\x01", 2);
+            memcpy(virtual_aic.idm + 2, buf, len);
+
+            printf("Virtual AIC -");
+            printf_hex(virtual_aic.idm, 8, ",");
+            printf_hex(virtual_aic.pmm, 8, ",");
+            printf_hex(virtual_aic.syscode, 2, "\n");
+
+            fake_felica_card();
+        } else {
+            handle_mifare_card(buf, len);
+        }
+    } else if (pn532_poll_felica(buf, buf + 8, buf + 16, false)) {
+        printf("Detected Felica -");
+        printf_hex(buf, 8, ",");
+        printf_hex(buf + 8, 8, ",");
+        printf_hex(buf + 16, 2, "\n");
+
+        handle_felica_card(buf);
+    } else {
+        handle_no_card();
+    }
+
     send_response();
 }
 
@@ -305,9 +377,14 @@ static int cmd_felica_poll(const card_id_t *card)
 
     felica_resp_t *felica_resp = (felica_resp_t *) response.payload;
     felica_poll_resp_t *poll_resp = (felica_poll_resp_t *) felica_resp->data;
-
-    memcpy(poll_resp->pmm, card->pmm, 8);
-    memcpy(poll_resp->syscode, card->syscode, 2);
+    
+    if (virtual_aic.active) {
+        memcpy(poll_resp->pmm, virtual_aic.pmm, 8);
+        memcpy(poll_resp->syscode, virtual_aic.syscode, 2);
+    } else {
+        memcpy(poll_resp->pmm, card->pmm, 8);
+        memcpy(poll_resp->syscode, card->syscode, 2);
+    }
 
     return sizeof(*poll_resp);
 }
@@ -317,8 +394,12 @@ static int cmd_felica_get_syscode(const card_id_t *card)
     printf("FELICA GET_SYSTEM_CODE\n");
     felica_resp_t *felica_resp = (felica_resp_t *) response.payload;
     felica_resp->data[0] = 0x01;
-    felica_resp->data[1] = card->syscode[0];
-    felica_resp->data[2] = card->syscode[1];
+    if (virtual_aic.active) {
+        memcpy(felica_resp->data, virtual_aic.syscode, 2);
+    } else {
+        felica_resp->data[1] = card->syscode[0];
+        felica_resp->data[2] = card->syscode[1];
+    }
     return 3;
 }
 
@@ -353,7 +434,9 @@ static int cmd_felica_read()
         if (block_id == 0x8082) {
             memcpy(read_resp->block_data[i], felica_resp->idm, 8);
         }
-        pn532_felica_read_wo_encrypt(svc_code, block_id, read_resp->block_data[i]);
+        if (!virtual_aic.active) {
+            pn532_felica_read_wo_encrypt(svc_code, block_id, read_resp->block_data[i]);
+        }
     }
 
     read_resp->rw_status[0] = 0x00;
@@ -396,8 +479,9 @@ static int cmd_felica_write()
 
     for (int i = 0; i < block_num; i++) {
         printf("writing %02x %02x\n", block_data[i * 16], block_data[i * 16 + 15]);
-        uint16_t block_id = (block[i * 2 + 1] << 8) | block[i * 2 + 2];
-        int result = pn532_felica_write_wo_encrypt(svc_code, block_id, block_data + i * 16);
+        // uint16_t block_id = (block[i * 2 + 1] << 8) | block[i * 2 + 2];
+        // int result = pn532_felica_write_wo_encrypt(svc_code, block_id, block_data + i * 16);
+        int result = 0;
         if (result < 0) {
             rw_status[0] = 0x01;
             rw_status[1] = 0x01;
@@ -409,7 +493,7 @@ static int cmd_felica_write()
 
 #if 0
 
-    case CMD_FELICA_THROUGH_NDA_A4:
+    case CMD_FELICA_OP_NDA_A4:
         printf("\tNDA_A4\n");
         build_response(11);
         resp->payload[0] = 0x00;
@@ -423,13 +507,11 @@ static int cmd_felica_write()
 static void cmd_felica()
 {
     card_id_t card;
-
-    if (!pn532_poll_felica(card.idm, card.pmm, card.syscode)) {
+    if (!pn532_poll_felica(card.idm, card.pmm, card.syscode, true)) {
         send_simple_response(STATUS_FELICA_ERROR);        
     }
 
     uint8_t felica_code = request.felica.code;
-
     printf("Felica (%02x):", felica_code);
     for (int i = 0; i < request.payload_len; i++) {
         printf(" %02x", request.payload[i]);
@@ -438,16 +520,16 @@ static void cmd_felica()
 
     int datalen = -1;
     switch (felica_code) {
-        case CMD_FELICA_THROUGH_GET_SYSTEM_CODE:
+        case CMD_FELICA_OP_GET_SYSTEM_CODE:
             datalen = cmd_felica_get_syscode(&card);
             break;
-        case CMD_FELICA_THROUGH_POLL:
+        case CMD_FELICA_OP_POLL:
             datalen = cmd_felica_poll(&card);
             break;
-        case CMD_FELICA_THROUGH_READ:
+        case CMD_FELICA_OP_READ:
             datalen = cmd_felica_read();
             break;
-        case CMD_FELICA_THROUGH_WRITE:
+        case CMD_FELICA_OP_WRITE:
             datalen = cmd_felica_write();
             break;
         default:
@@ -464,7 +546,11 @@ static void cmd_felica()
     build_response(sizeof(*felica_resp) + datalen);
     felica_resp->len = response.payload_len;
     felica_resp->code = felica_code + 1;
-    memcpy(felica_resp->idm, card.idm, 8);
+    if (virtual_aic.active) {
+        memcpy(felica_resp->idm, virtual_aic.idm, 8);
+    } else {
+        memcpy(felica_resp->idm, card.idm, 8);
+    }
 
     send_response();
 
@@ -518,7 +604,7 @@ static void aime_handle_frame()
         case CMD_CARD_DETECT:
             cmd_detect_card();
             break;
-        case CMD_FELICA_THROUGH:
+        case CMD_FELICA_OP:
             cmd_felica();
             break;
 

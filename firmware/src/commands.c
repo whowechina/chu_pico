@@ -420,9 +420,9 @@ static void handle_nfc()
     printf("\n");
 
     printf("Felica: ");
-    if (pn532_poll_felica(buf, buf + 8, buf + 16)) {
+    if (pn532_poll_felica(buf, buf + 8, buf + 16, false)) {
         for (int i = 0; i < 18; i++) {
-            printf(" %02x", buf[i]);
+            printf(" %02x%s", buf[i], (i % 8 == 7) ? "," : "");
         }
     }
     printf("\n");

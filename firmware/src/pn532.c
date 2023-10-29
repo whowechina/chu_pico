@@ -115,7 +115,7 @@ static bool read_ack()
 
 int pn532_write_data(const uint8_t *data, uint8_t len)
 {
-    uint8_t frame[40];
+    uint8_t frame[5 + len];
     frame[0] = PN532_PREAMBLE;
     frame[1] = PN532_STARTCODE1;
     frame[2] = PN532_STARTCODE2;
@@ -123,6 +123,7 @@ int pn532_write_data(const uint8_t *data, uint8_t len)
 
     frame[3] = len;
     frame[4] = (~len + 1);
+
     for (int i = 0; i < len; i++) {
         frame[5 + i] = data[i];
         checksum += data[i];
@@ -314,8 +315,15 @@ static struct __attribute__((packed)) {
     uint8_t inlist_tag;
 } felica_poll_cache;
 
-bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2])
+bool pn532_poll_felica(uint8_t uid[8], uint8_t pmm[8], uint8_t syscode[2], bool from_cache)
 {
+    if (from_cache) {
+        memcpy(uid, felica_poll_cache.idm, 8);
+        memcpy(pmm, felica_poll_cache.pmm, 8);
+        memcpy(syscode, felica_poll_cache.syscode, 2);
+        return true;
+    }
+
     uint8_t param[] = { 1, 1, 0, 0xff, 0xff, 1, 0};
     int ret = pn532_write_command(0x4a, param, sizeof(param));
     if (ret < 0) {
@@ -433,9 +441,9 @@ bool pn532_felica_read_wo_encrypt(uint16_t svc_code, uint16_t block_id, uint8_t 
 
 bool pn532_felica_write_wo_encrypt(uint16_t svc_code, uint16_t block_id, const uint8_t block_data[16])
 {
-    uint8_t param[] = { 1, svc_code & 0xff, svc_code >> 8,
+    uint8_t param[22] = { 1, svc_code & 0xff, svc_code >> 8,
                         1, block_id >> 8, block_id & 0xff };
-
+    memcpy(param + 6, block_data, 16);
     int result = pn532_felica_command(0x08, param, sizeof(param), readbuf);
 
     if (result < 0) {
