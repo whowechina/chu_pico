@@ -6,6 +6,7 @@
 
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
+#include "pico/bootrom.h"
 #include "cli.h"
 #include "save.h"
 
@@ -85,6 +86,13 @@ void cli_fps_count(int core)
 static void handle_fps(int argc, char *argv[])
 {
     printf("FPS: core 0: %d, core 1: %d\n", fps[0], fps[1]);
+}
+static void handle_update(int argc, char *argv[])
+{
+    printf("Boot into update mode.\n");
+    fflush(stdout);
+    sleep_ms(100);
+    reset_usb_boot(0, 2);
 }
 
 int cli_extract_non_neg_int(const char *param, int len)
@@ -181,4 +189,5 @@ void cli_init(const char *prompt, const char *logo)
 
     cli_register("?", handle_help, "Display this help message.");
     cli_register("fps", handle_fps, "Display FPS.");
+    cli_register("update", handle_update, "Update firmware.");
 }
