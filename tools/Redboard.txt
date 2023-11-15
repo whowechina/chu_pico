@@ -1,0 +1,4 @@
+Files in this directory are copied from CrazyRedBoard's RedBoard project.
+As Chu Pico runs RedBoard's protocol, so it's here for your convenience.
+
+https://github.com/CrazyRedMachine/RedBoard
