@@ -15,7 +15,7 @@
 
 #define VL53L0X_DEF_ADDR 0x29
 
-#define IO_TIMEOUT_US 10000
+#define IO_TIMEOUT_US 25000
 
 // Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
 #define decodeVcselPeriod(reg_val) (((reg_val) + 1) << 1)
@@ -773,8 +773,11 @@ void vl53l0x_stop_continuous()
 // single-shot range measurement)
 uint16_t readRangeContinuousMillimeters()
 {
-    if ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
-        return 65535;
+    uint32_t start = time_us_32();
+    while ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
+        if (time_us_32() - start > IO_TIMEOUT_US) {
+            return 65535;
+        }
     }
 
     // assumptions: Linearity Corrective Gain is 1000 (default);
