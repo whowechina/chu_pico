@@ -773,16 +773,14 @@ void vl53l0x_stop_continuous()
 // single-shot range measurement)
 uint16_t readRangeContinuousMillimeters()
 {
-    uint32_t start = time_us_32();
-    while ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
-        if (time_us_32() - start > IO_TIMEOUT_US) {
-            return 65535;
-        }
+    static uint16_t range = 65535;
+    if ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
+        return range; // use last result
     }
 
     // assumptions: Linearity Corrective Gain is 1000 (default);
     // fractional ranging is not enabled
-    uint16_t range = read_reg16(RESULT_RANGE_STATUS + 10);
+    range = read_reg16(RESULT_RANGE_STATUS + 10);
 
     write_reg(SYSTEM_INTERRUPT_CLEAR, 0x01);
 
