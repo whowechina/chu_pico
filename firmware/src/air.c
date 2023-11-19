@@ -46,7 +46,7 @@ void air_init()
         }
         if (tof_model[i] == 1) {
             vl53l0x_init_tof(true);
-            vl53l0x_start_continuous(0);
+            vl53l0x_start_continuous();
         } else if (tof_model[i] == 2) {
             gp2y03_init(I2C_PORT);
         }

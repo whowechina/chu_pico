@@ -105,17 +105,7 @@ typedef enum {
 
 void vl53l0x_init(i2c_inst_t *i2c_port, uint8_t i2c_addr);
 bool vl53l0x_is_present();
-bool vl53l0x_init_tof(bool io_2v8);
-
-void write_reg(uint8_t reg, uint8_t value);
-void write_reg16(uint8_t reg, uint16_t value);
-void write_reg32(uint8_t reg, uint32_t value);
-uint8_t read_reg(uint8_t reg);
-uint16_t read_reg16(uint8_t reg);
-uint32_t read_reg32(uint8_t reg);
-
-void write_many(uint8_t reg, uint8_t const * src, uint8_t count);
-void read_many(uint8_t reg, uint8_t * dst, uint8_t count);
+bool vl53l0x_init_tof();
 
 bool setSignalRateLimit(float limit_Mcps);
 float getSignalRateLimit();
@@ -126,7 +116,7 @@ uint32_t getMeasurementTimingBudget();
 bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks);
 uint8_t getVcselPulsePeriod(vcselPeriodType type);
 
-void vl53l0x_start_continuous(uint32_t period_ms);
+void vl53l0x_start_continuous();
 void vl53l0x_stop_continuous();
 
 uint16_t readRangeContinuousMillimeters();
