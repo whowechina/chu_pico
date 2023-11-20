@@ -29,8 +29,16 @@
 // PLL_period_ps = 1655; macro_period_vclks = 2304
 #define calcMacroPeriod(vcsel_period_pclks) ((((uint32_t)2304 * (vcsel_period_pclks) * 1655) + 500) / 1000)
 
-static i2c_inst_t *port;
+static i2c_inst_t *port = i2c0;
 static uint8_t addr = VL53L0X_DEF_ADDR;
+
+static struct {
+    uint8_t stop_variable; // read by init and used when starting measurement
+    uint16_t range;
+    uint32_t timing_budget_us;
+} instances[16];
+
+#define INSTANCE_NUM (sizeof(instances) / sizeof(instances[0]))
 
 // Write an 8-bit register
 void write_reg(uint8_t reg, uint8_t value)
@@ -89,13 +97,13 @@ void read_many(uint8_t reg, uint8_t *dst, uint8_t len)
 }
 
 
-uint16_t reg_mode1[] = { 4, 0x8800, 0x8001, 0xff01, 0x0000 };
-uint16_t reg_mode2[] = { 3, 0x0001, 0xff00, 0x8000 };
-uint16_t reg_spad0[] = { 4, 0x8001, 0xff01, 0x0000, 0xff06 };
-uint16_t reg_spad1[] = { 5, 0xff07, 0x8101, 0x8001, 0x946b, 0x8300 };
-uint16_t reg_spad2[] = { 4, 0xff01, 0x0001, 0xff00, 0x8000 };
-uint16_t reg_spad[] = { 5, 0xff01, 0x4f00, 0x4e2c, 0xff00, 0xb6b4 };
-uint16_t reg_tuning[] = { 80, 
+const uint16_t reg_mode1[] = { 4, 0x8800, 0x8001, 0xff01, 0x0000 };
+const uint16_t reg_mode2[] = { 3, 0x0001, 0xff00, 0x8000 };
+const uint16_t reg_spad0[] = { 4, 0x8001, 0xff01, 0x0000, 0xff06 };
+const uint16_t reg_spad1[] = { 5, 0xff07, 0x8101, 0x8001, 0x946b, 0x8300 };
+const uint16_t reg_spad2[] = { 4, 0xff01, 0x0001, 0xff00, 0x8000 };
+const uint16_t reg_spad[] = { 5, 0xff01, 0x4f00, 0x4e2c, 0xff00, 0xb6b4 };
+const uint16_t reg_tuning[] = { 80, 
         0xff01, 0x0000, 0xff00, 0x0900, 0x1000, 0x1100, 0x2401, 0x25ff,
         0x7500, 0xff01, 0x4e2c, 0x4800, 0x3020, 0xff00, 0x3009, 0x5400,
         0x3104, 0x3203, 0x4083, 0x4625, 0x6000, 0x2700, 0x5006, 0x5100,
@@ -107,10 +115,6 @@ uint16_t reg_tuning[] = { 80,
         0x6700, 0x7004, 0x7101, 0x72fe, 0x7600, 0x7700, 0xff01, 0x0d01,
         0xff00, 0x8001, 0x01f8, 0xff01, 0x8e01, 0x0001, 0xff00, 0x8000,
     };
-
-
-static uint8_t stop_variable; // read by init and used when starting measurement; is StopVariable field of VL53L0X_DevData_t structure in API
-static uint32_t measurement_timing_budget_us;
 
 void vl53l0x_init(i2c_inst_t *i2c_port, uint8_t i2c_addr)
 {
@@ -125,13 +129,13 @@ bool vl53l0x_is_present()
     return read_reg(IDENTIFICATION_MODEL_ID) == 0xEE;
 }
 
-bool vl53l0x_init_tof()
+bool vl53l0x_init_tof(int index)
 {
     write_reg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
     read_reg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV) | 0x01);
 
     write_reg_list(reg_mode1);
-    stop_variable = read_reg(0x91);
+    instances[index].stop_variable = read_reg(0x91);
     write_reg_list(reg_mode2);
 
     // disable SIGNAL_RATE_MSRC (bit 1) and SIGNAL_RATE_PRE_RANGE (bit 4) limit checks
@@ -145,6 +149,7 @@ bool vl53l0x_init_tof()
     uint8_t spad_count;
     bool is_aperture;
     if (!getSpadInfo(&spad_count, &is_aperture)) {
+        printf("%d\n", __LINE__);
         return false;
     }
 
@@ -176,17 +181,19 @@ bool vl53l0x_init_tof()
     write_reg(GPIO_HV_MUX_ACTIVE_HIGH, read_reg(GPIO_HV_MUX_ACTIVE_HIGH) & ~0x10); // active low
     write_reg(SYSTEM_INTERRUPT_CLEAR, 0x01);
 
-    measurement_timing_budget_us = getMeasurementTimingBudget();
+    instances[index].timing_budget_us = getMeasurementTimingBudget(index);
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0xE8);
-    setMeasurementTimingBudget(measurement_timing_budget_us);
+    setMeasurementTimingBudget(index, instances[index].timing_budget_us);
 
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0x01);
     if (!performSingleRefCalibration(0x40)) {
+        printf("%d\n", __LINE__);
         return false;
     }
 
     write_reg(SYSTEM_SEQUENCE_CONFIG, 0x02);
     if (!performSingleRefCalibration(0x00)) {
+        printf("%d\n", __LINE__);
         return false;
     }
 
@@ -259,7 +266,7 @@ uint32_t timeoutMicrosecondsToMclks(uint32_t timeout_period_us, uint8_t vcsel_pe
 // factor of N decreases the range measurement standard deviation by a factor of
 // sqrt(N). Defaults to about 33 milliseconds; the minimum is 20 ms.
 // based on VL53L0X_set_measurement_timing_budget_micro_seconds()
-bool setMeasurementTimingBudget(uint32_t budget_us)
+bool setMeasurementTimingBudget(int index, uint32_t budget_us)
 {
     SequenceStepEnables enables;
     SequenceStepTimeouts timeouts;
@@ -335,7 +342,7 @@ bool setMeasurementTimingBudget(uint32_t budget_us)
 
         // set_sequence_step_timeout() end
 
-        measurement_timing_budget_us = budget_us; // store for internal reuse
+        instances[index].timing_budget_us = budget_us; // store for internal reuse
     }
     return true;
 }
@@ -343,7 +350,7 @@ bool setMeasurementTimingBudget(uint32_t budget_us)
 // Get the measurement timing budget in microseconds
 // based on VL53L0X_get_measurement_timing_budget_micro_seconds()
 // in us
-uint32_t getMeasurementTimingBudget()
+uint32_t getMeasurementTimingBudget(int index)
 {
     SequenceStepEnables enables;
     SequenceStepTimeouts timeouts;
@@ -380,7 +387,7 @@ uint32_t getMeasurementTimingBudget()
         budget_us += (timeouts.final_range_us + FinalRangeOverhead);
     }
 
-    measurement_timing_budget_us = budget_us; // cache for reuse
+    instances[index].timing_budget_us = budget_us; // cache for reuse
     return budget_us;
 }
 
@@ -391,7 +398,7 @@ uint32_t getMeasurementTimingBudget()
 //    pre:    12 to 18 (initialized default: 14)
 //    final: 8 to 14 (initialized default: 10)
 // based on VL53L0X_set_vcsel_pulse_period()
-bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks)
+bool setVcselPulsePeriod(int index, vcselPeriodType type, uint8_t period_pclks)
 {
     uint8_t vcsel_period_reg = encodeVcselPeriod(period_pclks);
 
@@ -544,7 +551,7 @@ bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks)
 
     // "Finally, the timing budget must be re-applied"
 
-    setMeasurementTimingBudget(measurement_timing_budget_us);
+    setMeasurementTimingBudget(index, instances[index].timing_budget_us);
 
     // "Perform the phase calibration. This is needed after changing on vcsel period."
     // VL53L0X_perform_phase_calibration() begin
@@ -576,12 +583,16 @@ uint8_t getVcselPulsePeriod(vcselPeriodType type)
 
 // Start continuous ranging measurements.
 // based on VL53L0X_StartMeasurement()
-void vl53l0x_start_continuous()
+void vl53l0x_start_continuous(int index)
 {
+    if (index >= INSTANCE_NUM) {
+        return;
+    }
+
     write_reg(0x80, 0x01);
     write_reg(0xFF, 0x01);
     write_reg(0x00, 0x00);
-    write_reg(0x91, stop_variable);
+    write_reg(0x91, instances[index].stop_variable);
     write_reg(0x00, 0x01);
     write_reg(0xFF, 0x00);
     write_reg(0x80, 0x00);
@@ -591,7 +602,7 @@ void vl53l0x_start_continuous()
 
 // Stop continuous measurements
 // based on VL53L0X_StopMeasurement()
-void vl53l0x_stop_continuous()
+void vl53l0x_stop_continuous(int index)
 {
     write_reg(SYSRANGE_START, 0x01); // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
 
@@ -605,26 +616,30 @@ void vl53l0x_stop_continuous()
 // Returns a range reading in millimeters when continuous mode is active
 // (readRangeSingleMillimeters() also calls this function after starting a
 // single-shot range measurement)
-uint16_t readRangeContinuousMillimeters()
+uint16_t readRangeContinuousMillimeters(int index)
 {
-    static uint16_t range = 65535;
+    if (index >= INSTANCE_NUM) {
+        return 65535;
+    }
+
     if ((read_reg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
-        return range; // use last result
+        return instances[index].range; // use last result
     }
 
     // assumptions: Linearity Corrective Gain is 1000 (default);
     // fractional ranging is not enabled
-    range = read_reg16(RESULT_RANGE_STATUS + 10);
+    instances[index].range = read_reg16(RESULT_RANGE_STATUS + 10);
 
     write_reg(SYSTEM_INTERRUPT_CLEAR, 0x01);
 
-    return range;
+    return instances[index].range;
 }
 
+#if 0
 // Performs a single-shot range measurement and returns the reading in
 // millimeters
 // based on VL53L0X_PerformSingleRangingMeasurement()
-uint16_t readRangeSingleMillimeters()
+uint16_t readRangeSingleMillimeters(int index)
 {
     static uint16_t range = 65535;
     static bool reading = false;
@@ -637,14 +652,14 @@ uint16_t readRangeSingleMillimeters()
 
     if (reading) {
         if ((read_reg(SYSRANGE_START) & 0x01) == 0) {
-            range = readRangeContinuousMillimeters();
+            range = readRangeContinuousMillimeters(index);
             reading = false;
         }
     } else {
         write_reg(0x80, 0x01);
         write_reg(0xFF, 0x01);
         write_reg(0x00, 0x00);
-        write_reg(0x91, stop_variable);
+        write_reg(0x91, instances[index].stop_variable);
         write_reg(0x00, 0x01);
         write_reg(0xFF, 0x00);
         write_reg(0x80, 0x00);
@@ -655,6 +670,7 @@ uint16_t readRangeSingleMillimeters()
     }
     return range;
 }
+#endif
 
 // Private Methods /////////////////////////////////////////////////////////////
 

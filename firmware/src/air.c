@@ -45,8 +45,8 @@ void air_init()
             tof_model[i] = 0;
         }
         if (tof_model[i] == 1) {
-            vl53l0x_init_tof(true);
-            vl53l0x_start_continuous();
+            vl53l0x_init_tof(i);
+            vl53l0x_start_continuous(i);
         } else if (tof_model[i] == 2) {
             gp2y03_init(I2C_PORT);
         }
@@ -109,7 +109,7 @@ void air_update()
     for (int i = 0; i < sizeof(TOF_LIST); i++) {
         i2c_select(I2C_PORT, 1 << TOF_LIST[i]);
         if (tof_model[i] == 1) {
-            distances[i] = readRangeContinuousMillimeters() * 10;
+            distances[i] = readRangeContinuousMillimeters(i) * 10;
         } else if (tof_model[i] == 2) {
             distances[i] = gp2y0e_dist16_mm(I2C_PORT) * 10;
         }

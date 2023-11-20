@@ -262,10 +262,18 @@ uint32_t pn532_firmware_ver()
     return version;
 }
 
+bool pn532_config_rf()
+{
+    uint8_t param[] = {0x05, 0xff, 0x01, 0x50};
+    pn532_write_command(0x32, param, sizeof(param));
+
+    return pn532_read_response(0x32, param, sizeof(param)) == 0;
+}
+
 bool pn532_config_sam()
 {
     uint8_t param[] = {0x01, 0x14, 0x01};
-    pn532_write_command(0x14, param, 3);
+    pn532_write_command(0x14, param, sizeof(param));
 
     return pn532_read_response(0x14, NULL, 0) == 0;
 }
@@ -299,6 +307,36 @@ bool pn532_poll_mifare(uint8_t *uid, int *len)
     }
 
     if (*len < readbuf[5]) {
+        return false;
+    }
+
+    memcpy(uid, readbuf + 6, readbuf[5]);
+    *len = readbuf[5];
+
+    return true;
+}
+
+bool pn532_poll_14443b(uint8_t *uid, int *len)
+{
+    uint8_t param[] = {0x01, 0x03, 0x00};
+    int ret = pn532_write_command(0x4a, param, sizeof(param));
+    if (ret < 0) {
+        return false;
+    }
+
+    int result = pn532_read_response(0x4a, readbuf, sizeof(readbuf));
+    if (result < 1 || readbuf[0] != 1) {
+        printf("result: %d\n", result);
+        return false;
+    }
+
+    if (result != readbuf[5] + 6) {
+        printf("result: %d %d\n", result, readbuf[5]);
+        return false;
+    }
+
+    if (*len < readbuf[5]) {
+        printf("result: %d %d\n", result, readbuf[5]);
         return false;
     }
 

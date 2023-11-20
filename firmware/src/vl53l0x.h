@@ -105,22 +105,22 @@ typedef enum {
 
 void vl53l0x_init(i2c_inst_t *i2c_port, uint8_t i2c_addr);
 bool vl53l0x_is_present();
-bool vl53l0x_init_tof();
+bool vl53l0x_init_tof(int index);
 
 bool setSignalRateLimit(float limit_Mcps);
 float getSignalRateLimit();
 
-bool setMeasurementTimingBudget(uint32_t budget_us);
-uint32_t getMeasurementTimingBudget();
+bool setMeasurementTimingBudget(int index, uint32_t budget_us);
+uint32_t getMeasurementTimingBudget(int index);
 
-bool setVcselPulsePeriod(vcselPeriodType type, uint8_t period_pclks);
+bool setVcselPulsePeriod(int index, vcselPeriodType type, uint8_t period_pclks);
 uint8_t getVcselPulsePeriod(vcselPeriodType type);
 
-void vl53l0x_start_continuous();
-void vl53l0x_stop_continuous();
+void vl53l0x_start_continuous(int index);
+void vl53l0x_stop_continuous(int index);
 
-uint16_t readRangeContinuousMillimeters();
-uint16_t readRangeSingleMillimeters();
+uint16_t readRangeContinuousMillimeters(int index);
+uint16_t readRangeSingleMillimeters(int index);
 
 // TCC: Target CentreCheck
 // MSRC: Minimum Signal Rate Check
