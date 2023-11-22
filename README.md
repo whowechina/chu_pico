@@ -107,6 +107,7 @@ It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 * Find a service to cut an IR cover using the DXF or DWG file `Production\CAD\chu_pico_ir_cover.*`, the size is 293.2mm*63.5mm, 1mm thickness. The material must be "Infrared Transmitting Acrylic Sheet" which can block visible lights (so it looks black) while letting IR lights go through.  
   <img src="doc/ir_cover_3.png" width="80%">
 * If you can't find one, cut a regular smooth surface acrylic, but it can't hide the ToF sensors which are not good looking.
+* If you're using the VL53L0x ToF sensor, please add padding beneath the sensor. This brings it closer to the acrylic cover, which can prevent acrosstalk error.
 
 ### 3D Printing
 * You need a Bambu 3D printer for 2 reasons:
