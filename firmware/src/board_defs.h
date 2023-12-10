@@ -8,7 +8,7 @@
 #define I2C_PORT i2c0
 #define I2C_SDA 16
 #define I2C_SCL 17
-#define I2C_FREQ 633*1000
+#define I2C_FREQ 620*1000
 
 #define I2C_HUB_EN 19
 
