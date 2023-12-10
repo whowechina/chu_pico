@@ -41,6 +41,19 @@ I made this project in my personal time with no financial benefit or sponsorship
 It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
 
 ## HOW TO BUILD
+### Frequently Made Mistakes
+Many DIY enthusiasts commonly make certain mistakes during the building process. Please proceed with extra caution to avoid these.
+* **MISTAKE: Soldering everything together without conducting intermediate testing.**  
+  Remember, even professional engineers can make mistakes. It becomes significantly harder to identify the root cause of a problem when all components are already assembled or soldered. Therefore, it's advisable to solder and test in stages. The firmware is designed to function correctly even with some components missing, which is good for testing.
+* **MISTAKE: Neglecting to cut the ADDR pin trace on the MPR121 module.**  
+  The MPR121 module in the market has the ADDR pin pre-connected to ground. But the board expects a floating ADDR pin, otherwise the ADDR pin will short the circuit. Please verify your "CUT" using a multimeter.
+* **MISTAKE: Rushing to replace components when something fails.**  
+  Be aware that desoldering and soldering large SMD components is a challenging task. It carries the risk of damaging the component or the PCB board. Patience and caution are crucial. Look at the schematics and PCB design files and ask help from community first.
+* **MISTAKE: Prematurely assuming that the Raspberry Pi Pico or other modules are faulty.**  
+  While it's possible that these components could be defective, more often than not, the issue lies in the soldering. Therefore, questioning the integrity of these components should be your last resort.
+* **MISTAKE: Failing to properly solder the 3 USB pins of the Raspberry Pi Pico.**  
+  These pins are at the bottom side of the PCB. It's a common oversight to either forget to solder them or to leave air bubbles during the process. To avoid this, solder slowly from one side of the hole, using minimal solder wire and a generous amount of flux.
+
 ### PCB
 * Go JLCPCB and make order with the gerber zip file (latest `Production\PCB\chu_main_xxx.zip`), regular FR-4 board, black color, thickness is **1.6mm**.  
 * 1x Rasberry Pico Pi Pico or Pico W.  
