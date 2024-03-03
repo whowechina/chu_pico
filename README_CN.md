@@ -71,7 +71,7 @@ https://github.com/whowechina/
 
 * 3x MPR121 模块，市面上有很多种，选择这种类型的。  
   https://www.sparkfun.com/products/retired/9695  
-  在焊接 MPR121 模块到主 PCB 板之前，记得用锋利的小刀**切断默认的 ADDR 引脚**，注意绝对不要切过头。  
+  在焊接 MPR121 模块到主 PCB 板之前，记得用小刀**切断 ADDR 和 GND 之间的微小连线**，注意绝对不要切过头。  
   <img src="doc/mpr121_cut.png" width="40%">  
   MPR121 模块加上引脚的高度超过了 PCB 板的高度。所以你需要像下面的图片一样焊接模块。  
   首先贴上一些绝缘胶带。  

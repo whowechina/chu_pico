@@ -68,7 +68,7 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
   https://www.lcsc.com/product-detail/Signal-Switches-Encoders-Decoders-Multiplexers_Texas-Instruments-TCA9548APWR_C130026.html
 * 3x MPR121 modules, there're many types in the market, choose ones like this.  
   https://www.sparkfun.com/products/retired/9695  
-  Before solder MP121 module to the main PCB board, remember to use a knife to **cut (unshort) the ADDR pin** which is short by default. Please be careful not to cut more than necessary.  
+  Before solder MP121 module to the main PCB board, remember to use a knife to **cut (unshort) the tiny trace that connects ADDR to the GND**. Please be careful not to cut more than necessary.  
   <img src="doc/mpr121_cut.png" width="40%">  
   There's not enough space for the whole height of MPR121 module plus the lead pads. So you need to solder the module like the picture shows below.  
   First apply some insulation tape.  
