@@ -1,4 +1,5 @@
 # Chu Pico - Chunithm Style Mini Controller
+[点这里可以切换到中文版](README_CN.md)
 
 <img src="doc/main.jpg" width="80%">
 
@@ -48,9 +49,8 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
 * **MISTAKE: Neglecting to cut the ADDR pin trace on the MPR121 module.**  
   The MPR121 module in the market has the ADDR pin pre-connected to ground. But the board expects a floating ADDR pin, otherwise the ADDR pin will short the circuit. Please verify your "CUT" using a multimeter.
 * **MISTAKE: Rushing to replace components when something fails.**  
-  Be aware that desoldering and soldering large SMD components is a challenging task. It carries the risk of damaging the component or the PCB board. Patience and caution are crucial. Look at the schematics and PCB design files and ask help from community first.
-* **MISTAKE: Prematurely assuming that the Raspberry Pi Pico or other modules are faulty.**  
-  While it's possible that these components could be defective, more often than not, the issue lies in the soldering. Therefore, questioning the integrity of these components should be your last resort.
+  Sometimes people prematurely assumes that the Raspberry Pi Pico or other modules are faulty.
+  Be aware that desoldering and soldering large SMD components is a challenging task. It carries the risk of damaging the component or the PCB board. Patience and caution are crucial. Look at the schematics and PCB design files and ask help from community first. Questioning the integrity of these components should be your last resort.
 * **MISTAKE: Failing to properly solder the 3 USB pins of the Raspberry Pi Pico.**  
   These pins are at the bottom side of the PCB. It's a common oversight to either forget to solder them or to leave air bubbles during the process. To avoid this, solder slowly from one side of the hole, using minimal solder wire and a generous amount of flux.
 
@@ -68,7 +68,7 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
   https://www.lcsc.com/product-detail/Signal-Switches-Encoders-Decoders-Multiplexers_Texas-Instruments-TCA9548APWR_C130026.html
 * 3x MPR121 modules, there're many types in the market, choose ones like this.  
   https://www.sparkfun.com/products/retired/9695  
-  Before solder MP121 module to the main PCB board, remember to **cut (unshort) the ADDR pin** which is short by default.  
+  Before solder MP121 module to the main PCB board, remember to **cut (unshort) the ADDR pin** which is short by default. Please be careful not to cut more than necessary.  
   <img src="doc/mpr121_cut.png" width="40%">  
   There's not enough space for the whole height of MPR121 module plus the lead pads. So you need to solder the module like the picture shows below.  
   First apply some insulation tape.  
@@ -166,7 +166,7 @@ You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 https://github.com/CrazyRedMachine/RedBoard
 * It has a command line to do configuration. You can use this Web Serial Terminal to connect to the USB serial port of the Chu Pico. (Note: "?" is for help)  
   https://googlechromelabs.github.io/serial-terminal/  
-  <img src="doc/cmd.png" width="80%">
+  <img src="doc/cmd.png" width="320">
 
 ## CAD Source File
 I'm using OnShape free subscription. It's powerful but it can't archive original designs to local, so I can only share the link here. STL/DXF/DWG files are exported from this online document.  
