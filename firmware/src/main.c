@@ -21,14 +21,16 @@
 #include "tusb.h"
 #include "usb_descriptors.h"
 
-#include "board_defs.h"
+#include "aime.h"
+#include "nfc.h"
 
+#include "board_defs.h"
 #include "save.h"
 #include "config.h"
 #include "cli.h"
 #include "commands.h"
-#include "aime.h"
 
+#include "i2c_hub.h"
 #include "slider.h"
 #include "air.h"
 #include "rgb.h"
@@ -144,6 +146,26 @@ static void run_lights()
     }
 }
 
+const int aime_intf = 1;
+static void cdc_aime_putc(uint8_t byte)
+{
+    tud_cdc_n_write(aime_intf, &byte, 1);
+    tud_cdc_n_write_flush(aime_intf);
+}
+
+static void aime_run()
+{
+    if (tud_cdc_n_available(aime_intf)) {
+        uint8_t buf[32];
+        uint32_t count = tud_cdc_n_read(aime_intf, buf, sizeof(buf));
+
+        i2c_select(I2C_PORT, 1 << 5); // PN532 on IR1 (I2C mux chn 5)
+        for (int i = 0; i < count; i++) {
+            aime_feed(buf[i]);
+        }
+    }
+}
+
 static mutex_t core1_io_lock;
 static void core1_loop()
 {
@@ -164,7 +186,7 @@ static void core0_loop()
         tud_task();
 
         cli_run();
-        aime_update();
+        aime_run();
     
         save_loop();
         cli_fps_count(0);
@@ -194,7 +216,11 @@ void init()
     air_init();
     rgb_init();
 
-    aime_init(1);
+    nfc_attach_i2c(I2C_PORT);
+    i2c_select(I2C_PORT, 1 << 5); // PN532 on IR1 (I2C mux chn 5)
+    nfc_init();
+    aime_init(cdc_aime_putc);
+    aime_virtual_aic(chu_cfg->virtual_aic);
 
     cli_init("chu_pico>", "\n   << Chu Pico Controller >>\n"
                             " https://github.com/whowechina\n\n");

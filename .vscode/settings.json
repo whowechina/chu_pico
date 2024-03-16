@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "mpr121.h": "c",
+        "board_defs.h": "c",
+        "pn532.h": "c",
+        "cli.h": "c",
+        "vl53l0x.h": "c"
+    }
+}

@@ -7,6 +7,8 @@
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
 
+#include "aime.h"
+
 #include "config.h"
 #include "air.h"
 #include "slider.h"
@@ -14,8 +16,7 @@
 #include "cli.h"
 
 #include "i2c_hub.h"
-
-#include "pn532.h"
+#include "nfc.h"
 
 #define SENSE_LIMIT_MAX 9
 #define SENSE_LIMIT_MIN -9
@@ -73,6 +74,12 @@ static void disp_hid()
            chu_cfg->hid.nkro ? "on" : "off" );
 }
 
+static void disp_aime()
+{
+    printf("[AIME]\n");
+    printf("    Virtual AIC: %s\n", chu_cfg->virtual_aic ? "ON" : "OFF");
+}
+
 void handle_display(int argc, char *argv[])
 {
     const char *usage = "Usage: display [colors|style|tof|sense|hid]\n";
@@ -87,11 +94,12 @@ void handle_display(int argc, char *argv[])
         disp_tof();
         disp_sense();
         disp_hid();
+        disp_aime();
         return;
     }
 
-    const char *choices[] = {"colors", "style", "tof", "sense", "hid"};
-    switch (cli_match_prefix(choices, 5, argv[0])) {
+    const char *choices[] = {"colors", "style", "tof", "sense", "hid", "aime"};
+    switch (cli_match_prefix(choices, 6, argv[0])) {
         case 0:
             disp_colors();
             break;
@@ -106,6 +114,9 @@ void handle_display(int argc, char *argv[])
             break;
         case 4:
             disp_hid();
+            break;
+        case 5:
+            disp_aime();
             break;
         default:
             printf(usage);
@@ -402,30 +413,36 @@ static void handle_factory_reset()
 static void handle_nfc()
 {
     i2c_select(I2C_PORT, 1 << 5); // PN532 on IR1 (I2C mux chn 5)
-
-    bool ret = pn532_config_sam();
-    printf("Sam: %d\n", ret);
-
-    uint8_t buf[32];
-
-    int len = sizeof(buf);
-    ret = pn532_poll_mifare(buf, &len);
-    printf("Mifare: %d -", len);
-
-    if (ret) {
-        for (int i = 0; i < len; i++) {
-            printf(" %02x", buf[i]);
-        }
+    printf("NFC module: %s\n", nfc_module_name());
+    nfc_rf_field(true);
+    nfc_card_t card = nfc_detect_card();
+    nfc_rf_field(false);
+    printf("Card: %s", nfc_card_name(card.card_type));
+    for (int i = 0; i < card.len; i++) {
+        printf(" %02x", card.uid[i]);
     }
     printf("\n");
+}
 
-    printf("Felica: ");
-    if (pn532_poll_felica(buf, buf + 8, buf + 16, false)) {
-        for (int i = 0; i < 18; i++) {
-            printf(" %02x%s", buf[i], (i % 8 == 7) ? "," : "");
-        }
+static void handle_virtual(int argc, char *argv[])
+{
+    const char *usage = "Usage: virtual <on|off>\n";
+    if (argc != 1) {
+        printf("%s", usage);
+        return;
     }
-    printf("\n");
+
+    const char *commands[] = { "on", "off" };
+    int match = cli_match_prefix(commands, 2, argv[0]);
+    if (match < 0) {
+        printf("%s", usage);
+        return;
+    }
+
+    chu_cfg->virtual_aic = (match == 0);
+
+    aime_virtual_aic(chu_cfg->virtual_aic);
+    config_changed();
 }
 
 void commands_init()
@@ -442,4 +459,5 @@ void commands_init()
     cli_register("save", handle_save, "Save config to flash.");
     cli_register("factory", handle_factory_reset, "Reset everything to default.");
     cli_register("nfc", handle_nfc, "NFC debug.");
+    cli_register("virtual", handle_virtual, "Virtual AIC card.");
 }

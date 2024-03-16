@@ -38,6 +38,7 @@ typedef struct __attribute__((packed)) {
         uint8_t joy : 4;
         uint8_t nkro : 4;
     } hid;
+    bool virtual_aic;
 } chu_cfg_t;
 
 typedef struct {
