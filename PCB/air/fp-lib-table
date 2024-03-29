@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "chu_air")(type "KiCad")(uri "${KIPRJMOD}/chu_air.pretty")(options "")(descr ""))
+)
