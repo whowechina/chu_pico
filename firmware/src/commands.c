@@ -7,8 +7,6 @@
 #include "pico/stdio.h"
 #include "pico/stdlib.h"
 
-#include "aime.h"
-
 #include "config.h"
 #include "air.h"
 #include "slider.h"
@@ -16,7 +14,9 @@
 #include "cli.h"
 
 #include "i2c_hub.h"
+
 #include "nfc.h"
+#include "aime.h"
 
 #define SENSE_LIMIT_MAX 9
 #define SENSE_LIMIT_MIN -9
@@ -77,6 +77,7 @@ static void disp_hid()
 static void disp_aime()
 {
     printf("[AIME]\n");
+    printf("    NFC Module: %s\n", nfc_module_name());
     printf("    Virtual AIC: %s\n", chu_cfg->virtual_aic ? "ON" : "OFF");
 }
 
