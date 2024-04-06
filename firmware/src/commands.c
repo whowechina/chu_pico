@@ -77,13 +77,14 @@ static void disp_hid()
 static void disp_aime()
 {
     printf("[AIME]\n");
-    printf("    NFC Module: %s\n", nfc_module_name());
-    printf("    Virtual AIC: %s\n", chu_cfg->virtual_aic ? "ON" : "OFF");
+    printf("   NFC Module: %s\n", nfc_module_name());
+    printf("  Virtual AIC: %s\n", chu_cfg->aime.virtual_aic ? "ON" : "OFF");
+    printf("         Mode: %d\n", chu_cfg->aime.mode);
 }
 
 void handle_display(int argc, char *argv[])
 {
-    const char *usage = "Usage: display [colors|style|tof|sense|hid]\n";
+    const char *usage = "Usage: display [colors|style|tof|sense|hid|aime]\n";
     if (argc > 1) {
         printf(usage);
         return;
@@ -425,25 +426,59 @@ static void handle_nfc()
     printf("\n");
 }
 
-static void handle_virtual(int argc, char *argv[])
+static bool handle_aime_mode(const char *mode)
 {
-    const char *usage = "Usage: virtual <on|off>\n";
-    if (argc != 1) {
-        printf("%s", usage);
-        return;
+    if (strcmp(mode, "0") == 0) {
+        chu_cfg->aime.mode = 0;
+    } else if (strcmp(mode, "1") == 0) {
+        chu_cfg->aime.mode = 1;
+    } else {
+        return false;
     }
-
-    const char *commands[] = { "on", "off" };
-    int match = cli_match_prefix(commands, 2, argv[0]);
-    if (match < 0) {
-        printf("%s", usage);
-        return;
-    }
-
-    chu_cfg->virtual_aic = (match == 0);
-
-    aime_virtual_aic(chu_cfg->virtual_aic);
+    aime_set_mode(chu_cfg->aime.mode);
     config_changed();
+    return true;
+}
+
+static bool handle_aime_virtual(const char *onoff)
+{
+    if (strcasecmp(onoff, "on") == 0) {
+        chu_cfg->aime.virtual_aic = 1;
+    } else if (strcasecmp(onoff, "off") == 0) {
+        chu_cfg->aime.virtual_aic = 0;
+    } else {
+        return false;
+    }
+    aime_virtual_aic(chu_cfg->aime.virtual_aic);
+    config_changed();
+    return true;
+}
+
+static void handle_aime(int argc, char *argv[])
+{
+    const char *usage = "Usage:\n"
+                        "    aime mode <0|1>\n"
+                        "    aime virtual <on|off>\n";
+    if (argc != 2) {
+        printf("%s", usage);
+        return;
+    }
+
+    const char *commands[] = { "mode", "virtual" };
+    int match = cli_match_prefix(commands, 2, argv[0]);
+    
+    bool ok = false;
+    if (match == 0) {
+        ok = handle_aime_mode(argv[1]);
+    } else if (match == 1) {
+        ok = handle_aime_virtual(argv[1]);
+    }
+
+    if (ok) {
+        disp_aime();
+    } else {
+        printf("%s", usage);
+    }
 }
 
 void commands_init()
@@ -460,5 +495,5 @@ void commands_init()
     cli_register("save", handle_save, "Save config to flash.");
     cli_register("factory", handle_factory_reset, "Reset everything to default.");
     cli_register("nfc", handle_nfc, "NFC debug.");
-    cli_register("virtual", handle_virtual, "Virtual AIC card.");
+    cli_register("aime", handle_aime, "AIME settings.");
 }

@@ -38,7 +38,10 @@ static chu_cfg_t default_cfg = {
         .joy = 1,
         .nkro = 0,
     },
-    .virtual_aic = false,
+    .aime = {
+        .mode = 0,
+        .virtual_aic = 0,
+    },
 };
 
 chu_runtime_t *chu_runtime;
