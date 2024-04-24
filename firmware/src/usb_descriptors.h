@@ -136,6 +136,4 @@ enum {
         HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),                     \
     HID_COLLECTION_END
 
-//        HID_REPORT_ID(REPORT_ID_NKRO) 
-
 #endif /* USB_DESCRIPTORS_H_ */

@@ -10,8 +10,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-#include "bsp/board.h"
+#include <string.h>
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
 

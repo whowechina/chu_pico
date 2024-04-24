@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bsp/board.h"
 #include "hardware/pio.h"
 #include "hardware/timer.h"
 

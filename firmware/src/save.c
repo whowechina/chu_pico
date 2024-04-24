@@ -7,13 +7,12 @@
 
 #include "save.h"
 
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
-#include <memory.h>
+#include <string.h>
 
-
-#include "bsp/board.h"
 #include "pico/bootrom.h"
 #include "pico/stdio.h"
 

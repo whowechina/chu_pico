@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bsp/board.h"
 #include "hardware/gpio.h"
 
 #include "board_defs.h"
