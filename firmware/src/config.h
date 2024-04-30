@@ -45,11 +45,11 @@ typedef struct __attribute__((packed)) {
 } chu_cfg_t;
 
 typedef struct {
-    uint16_t fps[2];
+    bool debug;
 } chu_runtime_t;
 
 extern chu_cfg_t *chu_cfg;
-extern chu_runtime_t *chu_runtime;
+extern chu_runtime_t chu_runtime;
 
 void config_init();
 void config_changed(); // Notify the config has changed

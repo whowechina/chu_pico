@@ -44,7 +44,7 @@ static chu_cfg_t default_cfg = {
     },
 };
 
-chu_runtime_t *chu_runtime;
+chu_runtime_t chu_runtime;
 
 static void config_loaded()
 {
