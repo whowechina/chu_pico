@@ -87,6 +87,7 @@ static void handle_fps(int argc, char *argv[])
 {
     printf("FPS: core 0: %d, core 1: %d\n", fps[0], fps[1]);
 }
+
 static void handle_update(int argc, char *argv[])
 {
     printf("Boot into update mode.\n");

@@ -126,23 +126,6 @@ void handle_display(int argc, char *argv[])
     }
 }
 
-static int fps[2];
-void fps_count(int core)
-{
-    static uint32_t last[2] = {0};
-    static int counter[2] = {0};
-
-    counter[core]++;
-
-    uint32_t now = time_us_32();
-    if (now - last[core] < 1000000) {
-        return;
-    }
-    last[core] = now;
-    fps[core] = counter[core];
-    counter[core] = 0;
-}
-
 static void handle_level(int argc, char *argv[])
 {
     const char *usage = "Usage: level <0..255>\n";
