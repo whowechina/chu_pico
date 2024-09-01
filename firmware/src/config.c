@@ -48,10 +48,6 @@ chu_runtime_t chu_runtime;
 
 static void config_loaded()
 {
-    if (chu_cfg->style.level > 10) {
-        chu_cfg->style.level = default_cfg.style.level;
-        config_changed();
-    }
     if ((chu_cfg->tof.offset < 40) ||
         (chu_cfg->tof.pitch < 4) || (chu_cfg->tof.pitch > 50)) {
         chu_cfg->tof = default_cfg.tof;
