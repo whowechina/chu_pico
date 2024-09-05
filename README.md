@@ -18,7 +18,6 @@ And thanks to community developers that inspired me and helped me: CrazyRedMachi
 
 And also:
 * RP_Silicon_KiCad: https://github.com/HeadBoffin/RP_Silicon_KiCad
-* Switch_Keyboard_Kailh: https://github.com/kiswitch/keyswitch-kicad-library
 * Type-C: https://github.com/ai03-2725/Type-C.pretty
 
 ## Notes
