@@ -16,6 +16,11 @@
 
 感谢社区开发者的启发和帮助，比如 CrazyRedMachine (https://github.com/CrazyRedMachine)，SpeedyPotato (https://github.com/speedypotato).
 
+还有：
+* RP_Silicon_KiCad: https://github.com/HeadBoffin/RP_Silicon_KiCad
+* Switch_Keyboard_Kailh: https://github.com/kiswitch/keyswitch-kicad-library
+* Type-C: https://github.com/ai03-2725/Type-C.pretty
+
 ## 注意
 这个项目相比于我其他项目（比如 IIDX Pico 和 IIDX Teeny）其实是要容易一些的。你也可以尝试做我其他的一些项目。
 
