@@ -42,9 +42,14 @@ static chu_cfg_t default_cfg = {
         .mode = 0,
         .virtual_aic = 0,
     },
+    .ir = {
+        .enabled = 0,
+        .base = { 3800, 3800, 3800, 3800, 3800, 3800 },
+        .trigger = { 20, 20, 20, 20, 20, 20 },
+    },
 };
 
-chu_runtime_t chu_runtime;
+chu_runtime_t chu_runtime = {0};
 
 static void config_loaded()
 {

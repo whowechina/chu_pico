@@ -19,9 +19,8 @@
 #include "board_defs.h"
 #include "config.h"
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-
-static uint32_t rgb_buf[47]; // 16(Keys) + 15(Gaps) + 16(maximum ToF indicators)
+static uint32_t buf_main[47]; // 16(Keys) + 15(Gaps) + 16 (ToF/Tower indicators)
+static const uint32_t *buf_tower = &buf_main[31];
 
 #define _MAP_LED(x) _MAKE_MAPPER(x)
 #define _MAKE_MAPPER(x) MAP_LED_##x
@@ -92,22 +91,29 @@ static void drive_led()
     last = now;
 
     for (int i = 30; i >= 0; i--) {
-        pio_sm_put_blocking(pio0, 0, rgb_buf[i] << 8u);
+        pio_sm_put_blocking(pio0, 0, buf_main[i] << 8u);
     }
-    for (int i = 31; i < ARRAY_SIZE(rgb_buf); i++) {
-        pio_sm_put_blocking(pio0, 0, rgb_buf[i] << 8u);
+    for (int i = 31; i < count_of(buf_main); i++) {
+        pio_sm_put_blocking(pio0, 0, buf_main[i] << 8u);
+    }
+
+    for (int i = 0; i < 6; i++) {
+        pio_sm_put_blocking(pio0, 0, buf_tower[i] << 8u);
+    }
+    for (int i = 0; i < 6; i++) {
+        pio_sm_put_blocking(pio0, 1, buf_tower[i] << 8u);
     }
 }
 
 void rgb_set_colors(const uint32_t *colors, unsigned index, size_t num)
 {
-    if (index >= ARRAY_SIZE(rgb_buf)) {
+    if (index >= count_of(buf_main)) {
         return;
     }
-    if (index + num > ARRAY_SIZE(rgb_buf)) {
-        num = ARRAY_SIZE(rgb_buf) - index;
+    if (index + num > count_of(buf_main)) {
+        num = count_of(buf_main) - index;
     }
-    memcpy(&rgb_buf[index], colors, num * sizeof(*colors));
+    memcpy(&buf_main[index], colors, num * sizeof(*colors));
 }
 
 static inline uint32_t apply_level(uint32_t color)
@@ -125,10 +131,10 @@ static inline uint32_t apply_level(uint32_t color)
 
 void rgb_set_color(unsigned index, uint32_t color)
 {
-    if (index >= ARRAY_SIZE(rgb_buf)) {
+    if (index >= count_of(buf_main)) {
         return;
     }
-    rgb_buf[index] = apply_level(color);
+    buf_main[index] = apply_level(color);
 }
 
 void rgb_key_color(unsigned index, uint32_t color)
@@ -136,7 +142,7 @@ void rgb_key_color(unsigned index, uint32_t color)
     if (index > 16) {
         return;
     }
-    rgb_buf[index * 2] = apply_level(color);
+    buf_main[index * 2] = apply_level(color);
 }
 
 void rgb_gap_color(unsigned index, uint32_t color)
@@ -144,31 +150,31 @@ void rgb_gap_color(unsigned index, uint32_t color)
     if (index > 15) {
         return;
     }
-    rgb_buf[index * 2 + 1] = apply_level(color);
+    buf_main[index * 2 + 1] = apply_level(color);
 }
 
 void rgb_set_brg(unsigned index, const uint8_t *brg_array, size_t num)
 {
-    if (index >= ARRAY_SIZE(rgb_buf)) {
+    if (index >= count_of(buf_main)) {
         return;
     }
-    if (index + num > ARRAY_SIZE(rgb_buf)) {
-        num = ARRAY_SIZE(rgb_buf) - index;
+    if (index + num > count_of(buf_main)) {
+        num = count_of(buf_main) - index;
     }
     for (int i = 0; i < num; i++) {
         uint8_t b = brg_array[i * 3 + 0];
         uint8_t r = brg_array[i * 3 + 1];
         uint8_t g = brg_array[i * 3 + 2];
-        rgb_buf[index + i] = apply_level(rgb32(r, g, b, false));
+        buf_main[index + i] = apply_level(rgb32(r, g, b, false));
     }
 }
 
 void rgb_init()
 {
-    uint pio0_offset = pio_add_program(pio0, &ws2812_program);
-
-    gpio_set_drive_strength(RGB_PIN, GPIO_DRIVE_STRENGTH_2MA);
-    ws2812_program_init(pio0, 0, pio0_offset, RGB_PIN, 800000, false);
+    uint offset = pio_add_program(pio0, &ws2812_program);
+    ws2812_program_init(pio0, 0, offset, RGB_MAIN_PIN, 800000, false);
+    ws2812_program_init(pio0, 1, offset, RGB_TOWER_LEFT_PIN, 800000, false);
+    ws2812_program_init(pio0, 2, offset, RGB_TOWER_RIGHT_PIN, 800000, false);
 }
 
 void rgb_update()

@@ -42,10 +42,16 @@ typedef struct __attribute__((packed)) {
         uint8_t mode : 4;
         uint8_t virtual_aic : 4;
     } aime;
+    struct {
+        bool enabled;
+        uint16_t base[6];
+        uint8_t trigger[6];
+    } ir;
 } chu_cfg_t;
 
 typedef struct {
     bool debug;
+    bool ir_diagnostics;
 } chu_runtime_t;
 
 extern chu_cfg_t *chu_cfg;

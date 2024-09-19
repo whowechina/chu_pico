@@ -44,6 +44,21 @@ static void disp_tof()
     printf("  Offset: %d, Pitch: %d\n", chu_cfg->tof.offset, chu_cfg->tof.pitch);
 }
 
+static void disp_ir()
+{
+    printf("[IR]\n");
+    printf("  Enabled: %s\n", chu_cfg->ir.enabled ? "ON" : "OFF");
+    printf("  Base:");
+    for (int i = 0; i < count_of(chu_cfg->ir.base); i++) {
+        printf(" %d", chu_cfg->ir.base[i]);
+    }
+    printf("\n  Trigger:");
+    for (int i = 0; i < count_of(chu_cfg->ir.trigger); i++) {
+        printf(" %d%%", chu_cfg->ir.trigger[i]);
+    }
+    printf("\n");
+}
+
 static void disp_sense()
 {
     printf("[Sense]\n");
@@ -84,7 +99,7 @@ static void disp_aime()
 
 void handle_display(int argc, char *argv[])
 {
-    const char *usage = "Usage: display [colors|style|tof|sense|hid|aime]\n";
+    const char *usage = "Usage: display [colors|style|tof|ir|sense|hid|aime]\n";
     if (argc > 1) {
         printf(usage);
         return;
@@ -94,14 +109,15 @@ void handle_display(int argc, char *argv[])
         disp_colors();
         disp_style();
         disp_tof();
+        disp_ir();
         disp_sense();
         disp_hid();
         disp_aime();
         return;
     }
 
-    const char *choices[] = {"colors", "style", "tof", "sense", "hid", "aime"};
-    switch (cli_match_prefix(choices, 6, argv[0])) {
+    const char *choices[] = {"colors", "style", "tof", "ir", "sense", "hid", "aime"};
+    switch (cli_match_prefix(choices, count_of(choices), argv[0])) {
         case 0:
             disp_colors();
             break;
@@ -112,12 +128,15 @@ void handle_display(int argc, char *argv[])
             disp_tof();
             break;
         case 3:
-            disp_sense();
+            disp_ir();
             break;
         case 4:
-            disp_hid();
+            disp_sense();
             break;
         case 5:
+            disp_hid();
+            break;
+        case 6:
             disp_aime();
             break;
         default:
@@ -200,8 +219,8 @@ static void handle_tof(int argc, char *argv[])
 
     if (argc == 0) {
         printf("TOF: ");
-        for (int i = air_num(); i > 0; i--) {
-            printf(" %4d", air_raw(i - 1) / 10);
+        for (int i = air_tof_num(); i > 0; i--) {
+            printf(" %4d", air_tof_raw(i - 1) / 10);
         }
         printf("\n");
         return;
@@ -226,6 +245,68 @@ static void handle_tof(int argc, char *argv[])
 
     config_changed();
     disp_tof();
+}
+
+static void air_diagnostic()
+{
+    chu_runtime.ir_diagnostics = !chu_runtime.ir_diagnostics;
+    printf("IR Diagnostics: %s\n", chu_runtime.ir_diagnostics ? "ON" : "OFF");
+}
+
+static void air_baseline()
+{
+    printf("IR Baseline:");
+    for (int i = 0; i < count_of(chu_cfg->ir.base); i++) {
+        chu_cfg->ir.base[i] = air_ir_raw(i);
+        printf(" %4d", chu_cfg->ir.base[i]);
+    }
+    config_changed();
+    printf("\n");
+}
+
+static void air_trigger(char *argv[])
+{
+    const char *usage = "Usage: ir trigger <percent>\n"
+                        "  percent: [1..100]\n";
+
+    if (strncasecmp(argv[0], "trigger", strlen(argv[0])) != 0) {
+        printf(usage);
+        return;
+    }
+
+    int percent = cli_extract_non_neg_int(argv[1], 0);
+    if ((percent < 1) || (percent > 100)) {
+        printf(usage);
+        return;
+    }
+
+    for (int i = 0; i < count_of(chu_cfg->ir.trigger); i++) {
+        chu_cfg->ir.trigger[i] = percent;
+    }
+    config_changed();
+    disp_ir();
+}
+
+static void handle_ir(int argc, char *argv[])
+{
+    const char *usage = "Usage: ir <diagnostic|baseline>\n"
+                        "       ir trigger <percent>\n"
+                        "  percent: [1..100]\n";
+    if (argc == 1) {
+        const char *commands[] = { "diagnostic", "baseline" };
+        int cmd = cli_match_prefix(commands, count_of(commands), argv[0]);
+        if (cmd == 0) {
+            air_diagnostic();
+        } else if (cmd == 1) {
+            air_baseline();
+        } else {
+            printf(usage);
+        }
+    } else if (argc == 2) {
+        air_trigger(argv);
+    } else {
+        printf(usage);
+    }
 }
 
 static void handle_filter(int argc, char *argv[])
@@ -471,6 +552,7 @@ void commands_init()
     cli_register("stat", handle_stat, "Display or reset statistics.");
     cli_register("hid", handle_hid, "Set HID mode.");
     cli_register("tof", handle_tof, "Set ToF config.");
+    cli_register("ir", handle_ir, "Set IR config.");
     cli_register("filter", handle_filter, "Set pre-filter config.");
     cli_register("sense", handle_sense, "Set sensitivity config.");
     cli_register("debounce", handle_debounce, "Set debounce config.");

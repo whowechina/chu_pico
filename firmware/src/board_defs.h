@@ -14,7 +14,12 @@
 
 #define TOF_MUX_LIST { 1, 2, 0, 4, 5 }
 
-#define RGB_PIN 2
+#define IR_GROUP_ABC_GPIO { 3, 4, 5 }
+#define IR_SIG_ADC_CHANNEL { 0, 1 }
+
+#define RGB_MAIN_PIN 2
+#define RGB_TOWER_LEFT_PIN 0
+#define RGB_TOWER_RIGHT_PIN 1
 #define RGB_ORDER GRB // or RGB
 
 #define NKRO_KEYMAP "1aqz2swx3dec4frv5gtb6hyn7jum8ki90olp,."

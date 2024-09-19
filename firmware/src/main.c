@@ -115,8 +115,8 @@ static void run_lights()
     if (now - last_hid_time >= 1000000) {
         const uint32_t colors[] = {0x000000, 0x0000ff, 0xff0000, 0xffff00,
                                 0x00ff00, 0x00ffff, 0xffffff};
-        for (int i = 0; i < air_num(); i++) {
-            int d = air_value(i);
+        for (int i = 0; i < air_tof_num(); i++) {
+            int d = air_tof_value(i);
             rgb_set_color(31 + i, colors[d]);
         }
 
