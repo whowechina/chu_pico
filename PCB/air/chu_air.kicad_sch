@@ -2636,13 +2636,12 @@
 				)
 			)
 		)
-		(property "Value" "IR26-21C_L110_TR8"
+		(property "Value" "IR333C-A"
 			(at 95.5675 93.345 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D5.0mm_IRGrey"
@@ -2836,13 +2835,12 @@
 				)
 			)
 		)
-		(property "Value" "Q_Photo_NPN"
-			(at 79.2607 156.21 90)
+		(property "Value" "PT333-3B"
+			(at 85.725 167.005 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D5.0mm_IRBlack"
@@ -3548,13 +3546,12 @@
 				)
 			)
 		)
-		(property "Value" "Q_Photo_NPN"
-			(at 79.2607 64.77 90)
+		(property "Value" "PT333-3B"
+			(at 85.09 75.565 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D5.0mm_IRBlack"
@@ -3695,13 +3692,12 @@
 				)
 			)
 		)
-		(property "Value" "IR26-21C_L110_TR8"
+		(property "Value" "IR333C-A"
 			(at 95.5675 138.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D5.0mm_IRGrey"
@@ -3974,13 +3970,12 @@
 				)
 			)
 		)
-		(property "Value" "IR26-21C_L110_TR8"
+		(property "Value" "IR333C-A"
 			(at 95.5675 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D5.0mm_IRGrey"
@@ -4409,13 +4404,12 @@
 				)
 			)
 		)
-		(property "Value" "Q_Photo_NPN"
-			(at 79.2607 111.125 90)
+		(property "Value" "PT333-3B"
+			(at 85.09 121.92 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Footprint" "LED_THT:LED_D5.0mm_IRBlack"
