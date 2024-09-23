@@ -173,14 +173,15 @@ You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 ### IR Air Tower
 This is not necessary for Chu Pico. But some people may prefer the traditional IR air tower, especially when they're using Chu Pico design for a full-sized controller.
 So hereby I provide the IR air tower design, with a pair of air tower PCBs and the firmware support.
-1. First, you need to order the PCBs, the gerber file is `Production\PCB\chu_air_v*.zip`. It's for both sides of the air tower.
+1. First, you need to order the sensor PCBs, the gerber file is `Production\PCB\chu_air_v*.zip`. It's for both sides of the air tower.
 2. Order the components, they're marked in the schematic. Then solder them to the PCB following the silkscreen.
-3. For left side tower, use J1 to connect to the Raspberry Pi Pico, and for the right side tower, use J2. GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S.  
-  <img src="doc/air_tower_wiring.png" width="50%">
+3. For left side PCB, use J1 to connect to the Raspberry Pi Pico, and for the right side PCB, use J2. GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S.  
+  <img src="doc/air_tower_wiring.png" width="25%"> <img src="doc/chu_air_pcb.png" width="70%">
 
 4. Steps for deployment.
-   * Enable IR air tower in the firmware (command `ir enable`), this will disable ToF.
+   * Enable IR sensor in the firmware (command `ir enable`), this will disable ToF.
    * Enable diagnostics for IR (command `ir diagnostic`).
+   * Orientation of the PCB: for the left side PCB, its J1 is at the lowest, for the right side PCB, its J2 is at the lowest (up-side-down).
    * Place the air towers and watch the output of the diagnostics, higher value means beam is received.
    * Set the baseline after the towers are properly placed (command `ir baseline`).
    * Optionally, set the sensitivity, it's a percentage of expected change (command `ir trigger <1..100>`).
