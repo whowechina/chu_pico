@@ -186,11 +186,11 @@ Chu Pico 本身不需要红外空键。但是有些人可能用 Chu Pico 来做�
 3. 左侧空键 PCB 使用 J1 连接到 Pi Pico 主控，右侧空键 PCB 使用 J2 连接。GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S。  
   <img src="doc/air_tower_wiring.png" width="50%">
 4. 调试上线的过程如下：
-  * 在固件中启用 IR 空键（命令 `ir enable`），它会自动禁用 ToF。
-  * 启用 IR 的诊断功能（命令 `ir diagnostic`）。
-  * 摆放两侧的空键塔，观察诊断输出，数值高代表着对应的红外光线已经对准接收器。
-  * 在正确摆放好空键塔后，设置基线（命令 `ir baseline`）。
-  * 可选，设置触发灵敏度，它用一个变化的百分比值来表达（命令 `ir trigger <1..100>`）。
+   1. 在固件中启用 IR 空键（命令 `ir enable`），它会自动禁用 ToF。
+   2. 启用 IR 的诊断功能（命令 `ir diagnostic`）。
+   3. 摆放两侧的空键塔，观察诊断输出，数值高代表着对应的红外光线已经对准接收器。
+   4. 在正确摆放好空键塔后，设置基线（命令 `ir baseline`）。
+   5. 可选，设置触发灵敏度，它用一个变化的百分比值来表达（命令 `ir trigger <1..100>`）。
 
 ### 固件
 * UF2 文件在 `Production\Firmware` 文件夹下。
