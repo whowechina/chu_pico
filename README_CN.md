@@ -6,6 +6,7 @@
 **特性:**
 * 它很小巧，适合15-17寸屏幕。
 * 空键被 ToF 距离传感器替代。
+* 也提供了传统 IR Air 的机制供 DIY 玩家使用。
 * HID 灯光，必须的！
 * 32个按键（上下两排）。
 * 遵循 CrazyRedMachine 的 RedBoard I/O 协议。
@@ -176,6 +177,20 @@ https://github.com/whowechina/
 
 7x 个硅胶防滑垫可以贴在基座的底部，以提供游玩时候的稳定性。
 <img src="doc/silicone_pad.png" width="50%">
+
+### 红外空键
+Chu Pico 本身不需要红外空键。但是有些人可能用 Chu Pico 来做一个全尺寸的控制器，它们更喜欢传统的 IR 空键。
+所以我提供了 IR 空键的设计，包括一对空键 PCB 和对应的固件支持。
+1. 首先，你需要下单 PCB，Gerber 文件在 `Production\PCB\chu_air_v*.zip`。空键的两侧都需要这个 PCB。
+2. 根据原理图里的有标记，购买对应的元器件，然后按照丝印焊接到 PCB 上。
+3. 左侧空键 PCB 使用 J1 连接到 Pi Pico 主控，右侧空键 PCB 使用 J2 连接。GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S。  
+  <img src="doc/air_tower_wiring.png" width="50%">
+4. 调试上线的过程如下：
+  I. 在固件中启用 IR 空键（命令 `ir enable`），它会自动禁用 ToF。
+  II. 启用 IR 的诊断功能（命令 `ir diagnostic`）。
+  III. 摆放两侧的空键塔，观察诊断输出，数值高代表着对应的红外光线已经对准接收器。
+  IV. 在正确摆放好空键塔后，设置基线（命令 `ir baseline`）。
+  V. 可选，设置触发灵敏度，是一个变化率的百分比值（命令 `ir trigger <1..100>`）。
 
 ### 固件
 * UF2 文件在 `Production\Firmware` 文件夹下。

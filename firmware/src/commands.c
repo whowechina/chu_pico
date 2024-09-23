@@ -260,7 +260,6 @@ static void air_baseline()
         chu_cfg->ir.base[i] = air_ir_raw(i);
         printf(" %4d", chu_cfg->ir.base[i]);
     }
-    config_changed();
     printf("\n");
 }
 
@@ -289,19 +288,26 @@ static void air_trigger(char *argv[])
 
 static void handle_ir(int argc, char *argv[])
 {
-    const char *usage = "Usage: ir <diagnostic|baseline>\n"
+    const char *usage = "Usage: ir <enable|disable|diagnostic|baseline>\n"
                         "       ir trigger <percent>\n"
                         "  percent: [1..100]\n";
     if (argc == 1) {
-        const char *commands[] = { "diagnostic", "baseline" };
+        const char *commands[] = { "enable", "disable", "diagnostic", "baseline" };
         int cmd = cli_match_prefix(commands, count_of(commands), argv[0]);
         if (cmd == 0) {
-            air_diagnostic();
+            chu_cfg->ir.enabled = true;
+            air_init();
         } else if (cmd == 1) {
+            chu_cfg->ir.enabled = false;
+        } else if (cmd == 2) {
+            air_diagnostic();
+        } else if (cmd == 3) {
             air_baseline();
         } else {
             printf(usage);
+            return;
         }
+        config_changed();
     } else if (argc == 2) {
         air_trigger(argv);
     } else {

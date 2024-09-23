@@ -6,6 +6,7 @@
 Features:
 * It's small, made for 15-17 inch screen.
 * Air towers are replaced with built-in ToF sensors.
+* Traditional IR Air mechanism is also provided for DIYers.
 * HID lights, of course!
 * 32 keys (upper and lower rows).
 * Follows CrazyRedMachine's RedBoard I/O protocol.
@@ -168,6 +169,20 @@ You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 
 7x silicone anti-slip pads can be applied to the bottom side of the base to provide stability when playing.  
 <img src="doc/silicone_pad.png" width="50%">
+
+### IR Air Tower
+This is not necessary for Chu Pico. But some people may prefer the traditional IR air tower, especially when they're using Chu Pico design for a full-sized controller.
+So hereby I provide the IR air tower design, with a pair of air tower PCBs and the firmware support.
+1. First, you need to order the PCBs, the gerber file is `Production\PCB\chu_air_v*.zip`. It's for both sides of the air tower.
+2. Order the components, they're marked in the schematic. Then solder them to the PCB following the silkscreen.
+3. For left side tower, use J1 to connect to the Raspberry Pi Pico, and for the right side tower, use J2. GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S.  
+  <img src="doc/air_tower_wiring.png" width="50%">
+4. Steps for deployment.
+  I. Enable IR air tower in the firmware (command `ir enable`), this will disable ToF.
+  II. Enable diagnostics for IR (command `ir diagnostic`).
+  III. Place the air towers and watch the output of the diagnostics, higher value means beam is received.
+  IV. Set the baseline after the towers are properly placed (command `ir baseline`).
+  V. Optionally, set the sensitivity, it's a percentage of expected change (command `ir trigger <1..100>`).
 
 ### Firmware
 * UF2 file is in `Production\Firmware` folder.
