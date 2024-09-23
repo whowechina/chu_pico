@@ -185,6 +185,7 @@ Chu Pico 本身不需要红外空键。但是有些人可能用 Chu Pico 来做�
 2. 根据原理图里的有标记，购买对应的元器件，然后按照丝印焊接到 PCB 上。
 3. 左侧空键 PCB 使用 J1 连接到 Pi Pico 主控，右侧空键 PCB 使用 J2 连接。GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S。  
   <img src="doc/air_tower_wiring.png" width="50%">
+
 4. 调试上线的过程如下：
    * 在固件中启用 IR 空键（命令 `ir enable`），它会自动禁用 ToF。
    * 启用 IR 的诊断功能（命令 `ir diagnostic`）。

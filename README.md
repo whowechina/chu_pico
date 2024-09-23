@@ -177,6 +177,7 @@ So hereby I provide the IR air tower design, with a pair of air tower PCBs and t
 2. Order the components, they're marked in the schematic. Then solder them to the PCB following the silkscreen.
 3. For left side tower, use J1 to connect to the Raspberry Pi Pico, and for the right side tower, use J2. GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S.  
   <img src="doc/air_tower_wiring.png" width="50%">
+
 4. Steps for deployment.
    * Enable IR air tower in the firmware (command `ir enable`), this will disable ToF.
    * Enable diagnostics for IR (command `ir diagnostic`).
