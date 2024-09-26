@@ -473,7 +473,7 @@
       "plot": "../../Production/PCB/chu_air/",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "chu_air.step",
       "svg": "",
       "vrml": ""
     },
