@@ -41,6 +41,7 @@ This one is relatively easy to build compared with my other projects like IIDX P
 * Diva Pico: https://github.com/whowechina/diva_pico
 * AIC Pico: https://github.com/whowechina/aic_pico
 * Groove Pico: https://github.com/whowechina/groove_pico
+* Geki Pico: https://github.com/whowechina/geki_pico
 
 This Chu Pico project:  
 * Heavily depends on 3D printing, you need a Bambu 3D printer (X1 or P1).
@@ -50,7 +51,7 @@ This Chu Pico project:
 I made this project in my personal time with no financial benefit or sponsorship. I will continue to improve the project. I have done my best to ensure that everything is accurate and functional, there's always a chance that mistakes may occur. I cannot be held responsible for any loss of your time or money that may result from using this open source project. Thank you for your understanding.
 
 ## About the License
-It's CC-NC. So DIY for yourself and for your friend, don't make money from it.
+It's CC-NC. So DIY for yourself and for your friend, don't make money from it. And plagiarism that doesn’t even dare to mention the original author is not acceptable.
 
 ## HOW TO BUILD
 ### Frequently Made Mistakes
