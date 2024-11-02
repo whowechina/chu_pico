@@ -77,7 +77,10 @@ static void gen_joy_report()
 
     }
     hid_joy.axis ^= 0x80808080; // some magic number from CrazyRedMachine
-    hid_joy.buttons = air_bitmap();
+    uint16_t airmap = air_bitmap();
+
+    /* to cope with Redboard mapping which I don't really understand why */
+    hid_joy.buttons = ((airmap >> 1) & 0x07) | ((airmap & 0x01) << 3) | (airmap & 0x30);
 }
 
 const uint8_t keycode_table[128][2] = { HID_ASCII_TO_KEYCODE };
@@ -94,11 +97,13 @@ static void gen_nkro_report()
             hid_nkro.keymap[byte] &= ~(1 << bit);
         }
     }
+
+    uint16_t airmap = air_bitmap();
     for (int i = 0; i < 6; i++) {
         uint8_t code = keycode_table[keymap[32 + i]][1];
         uint8_t byte = code / 8;
         uint8_t bit = code % 8;
-        if (hid_joy.buttons & (1 << i)) {
+        if (airmap & (1 << i)) {
             hid_nkro.keymap[byte] |= (1 << bit);
         } else {
             hid_nkro.keymap[byte] &= ~(1 << bit);
