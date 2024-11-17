@@ -11,7 +11,7 @@
 #include "save.h"
 
 #define MAX_COMMANDS 32
-#define MAX_PARAMETERS 6
+#define MAX_PARAMETERS 10
 #define MAX_PARAMETER_LENGTH 20
 
 const char *cli_prompt = "cli>";
@@ -56,11 +56,13 @@ int cli_match_prefix(const char *str[], int num, const char *prefix)
     return match;
 }
 
+const char *built_time = __DATE__ " " __TIME__;
+
 static void handle_help(int argc, char *argv[])
 {
     printf("%s", cli_logo);
     printf("\tSN: %016llx\n", board_id_64());
-    printf("\tBuilt: %s %s\n\n", __DATE__, __TIME__);
+    printf("\tBuilt: %s\n\n", built_time);
     printf("Available commands:\n");
     for (int i = 0; i < num_commands; i++) {
         printf("%*s: %s\n", max_cmd_len + 2, commands[i], helps[i]);
@@ -147,6 +149,32 @@ static void process_cmd()
 
 void cli_run()
 {
+    static bool was_connected = false;
+    static uint64_t connect_time = 0;
+    static bool welcomed = false;
+
+    bool connected = stdio_usb_connected();
+
+    bool just_connected = connected && !was_connected;
+    was_connected = connected;
+
+    if (!connected) {
+        return;
+    }
+
+    if (just_connected) {
+        connect_time = time_us_64();
+        welcomed = false;
+        return;
+    }
+
+    if (!welcomed && (time_us_64() - connect_time > 200000)) {
+        welcomed = true;
+        cmd_len = 0;
+        handle_help(0, NULL);
+        printf("\n%s", cli_prompt);
+    }
+
     int c = getchar_timeout_us(0);
     if (c == EOF) {
         return;
@@ -172,7 +200,7 @@ void cli_run()
         }
         return;
     }
-
+    
     cmd_buf[cmd_len] = '\0';
     cmd_len = 0;
 
