@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include "hardware/gpio.h"
@@ -24,6 +25,7 @@
 static uint16_t readout[36];
 static uint16_t touch[3];
 static unsigned touch_count[36];
+static bool present[3];
 
 void slider_init()
 {
@@ -34,9 +36,19 @@ void slider_init()
     gpio_pull_up(I2C_SCL);
     
     for (int m = 0; m < 3; m++) {
-        mpr121_init(MPR121_ADDR + m);
+        present[m] = mpr121_init(MPR121_ADDR + m);
     }
     slider_update_config();
+}
+
+const char *slider_sensor_status()
+{
+    static char status[64];
+    snprintf(status, sizeof(status), "Sensors: %02X:%s %02X:%s %02X:%s",
+             MPR121_ADDR, present[0] ? "OK" : "ERR",
+             MPR121_ADDR + 1, present[1] ? "OK" : "ERR",
+             MPR121_ADDR + 2, present[2] ? "OK" : "ERR");
+    return status;
 }
 
 void slider_update()

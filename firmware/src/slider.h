@@ -16,6 +16,7 @@ const uint16_t *slider_raw();
 void slider_update_config();
 unsigned slider_count(unsigned key);
 void slider_reset_stat();
+const char *slider_sensor_status();
 
 
 #endif

@@ -458,7 +458,8 @@ static void handle_debounce(int argc, char *argv[])
 
 static void handle_raw()
 {
-    printf("Key raw readings:\n");
+    printf("%s\n", slider_sensor_status());
+    printf("Raw readings:\n");
     const uint16_t *raw = slider_raw();
     printf("|");
     for (int i = 0; i < 16; i++) {

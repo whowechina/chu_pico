@@ -7,7 +7,7 @@
 #ifndef MP121_H
 #define MP121_H
 
-void mpr121_init(uint8_t addr);
+bool mpr121_init(uint8_t addr);
 
 uint16_t mpr121_touched(uint8_t addr);
 void mpr121_raw(uint8_t addr, uint16_t *raw, int num);

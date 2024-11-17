@@ -74,7 +74,7 @@ static uint8_t read_reg(uint8_t addr, uint8_t reg)
     return value;
 }
 
-void mpr121_init(uint8_t i2c_addr)
+bool mpr121_init(uint8_t i2c_addr)
 {
     write_reg(i2c_addr, 0x80, 0x63); // Soft reset MPR121 if not reset correctly 
 
@@ -129,6 +129,9 @@ void mpr121_init(uint8_t i2c_addr)
     write_reg(i2c_addr, 0x7F, usl * 0.9);
 
     write_reg(i2c_addr, 0x5E, 0x8C); // Run 12 touch, load 5MSB to baseline 
+
+    uint8_t check = read_reg(i2c_addr, 0x5E);
+    return (check == 0x8C);
 }
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
