@@ -13,6 +13,7 @@
 #include "pico/multicore.h"
 #include "pico/bootrom.h"
 
+#include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include "hardware/sync.h"
 #include "hardware/structs/ioqspi.h"
