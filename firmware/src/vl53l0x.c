@@ -84,8 +84,12 @@ uint16_t read_reg16(uint8_t reg)
 // starting at the given register
 void write_many(uint8_t reg, const uint8_t *src, uint8_t len)
 {
-    i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true, time_us_64() + IO_TIMEOUT_US);
-    i2c_write_blocking_until(I2C_PORT, addr, src, len, false, time_us_64() + IO_TIMEOUT_US);
+    uint8_t cache[32] = { reg, 0 };
+    if (len > sizeof(cache) - 1) {
+        return;
+    }
+    memcpy(cache + 1, src, len);
+    i2c_write_blocking_until(I2C_PORT, addr, cache, len + 1, false, time_us_64() + IO_TIMEOUT_US * len);
 }
 
 // Read an arbitrary number of bytes from the sensor, starting at the given
