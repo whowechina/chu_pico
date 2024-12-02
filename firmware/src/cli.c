@@ -179,9 +179,6 @@ void cli_run()
     if (c < 0) {
         return;
     }
-    if (c == 0) {
-        return;
-    }
 
     if (c == '\b' || c == 127) { // both backspace and delete
         if (cmd_len > 0) {
