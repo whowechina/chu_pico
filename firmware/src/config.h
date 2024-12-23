@@ -47,6 +47,10 @@ typedef struct __attribute__((packed)) {
         uint16_t base[6];
         uint8_t trigger[6];
     } ir;
+    struct {
+        bool skip_split_led;
+        uint8_t reserved[7];
+    } tweak;
 } chu_cfg_t;
 
 typedef struct {

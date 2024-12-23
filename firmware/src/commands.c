@@ -97,9 +97,15 @@ static void disp_aime()
     printf("         Mode: %d\n", chu_cfg->aime.mode);
 }
 
+static void disp_tweak()
+{
+    printf("[Tweak]\n");
+    printf("  Skip Splitter LED: %s\n", chu_cfg->tweak.skip_split_led ? "ON" : "OFF");
+}
+
 void handle_display(int argc, char *argv[])
 {
-    const char *usage = "Usage: display [colors|style|tof|ir|sense|hid|aime]\n";
+    const char *usage = "Usage: display [colors|style|tof|ir|sense|hid|aime|tweak]\n";
     if (argc > 1) {
         printf(usage);
         return;
@@ -113,10 +119,11 @@ void handle_display(int argc, char *argv[])
         disp_sense();
         disp_hid();
         disp_aime();
+        disp_tweak();
         return;
     }
 
-    const char *choices[] = {"colors", "style", "tof", "ir", "sense", "hid", "aime"};
+    const char *choices[] = {"colors", "style", "tof", "ir", "sense", "hid", "aime", "tweak"};
     switch (cli_match_prefix(choices, count_of(choices), argv[0])) {
         case 0:
             disp_colors();
@@ -138,6 +145,9 @@ void handle_display(int argc, char *argv[])
             break;
         case 6:
             disp_aime();
+            break;
+        case 7:
+            disp_tweak();
             break;
         default:
             printf(usage);
@@ -552,6 +562,36 @@ static void handle_aime(int argc, char *argv[])
     }
 }
 
+static void handle_tweak(int argc, char *argv[])
+{
+    const char *usage = "Usage: tweak skip_split <on|off>\n";
+    if (argc < 1) {
+        printf("%s", usage);
+        return;
+    }
+    const char *options[] = { "skip_split" };
+    int match = cli_match_prefix(options, count_of(options), argv[0]);
+    if (match < 0) {
+        printf("%s", usage);
+        return;
+    }
+
+    if (match == 0) {
+        if (argc != 2) {
+            printf("%s", usage);
+            return;
+        }
+        const char *on_off[] = { "off", "on" };
+        int on = cli_match_prefix(on_off, count_of(on_off), argv[1]);
+        if (on < 0) {
+            printf("%s", usage);
+            return;
+        }
+        chu_cfg->tweak.skip_split_led = (on > 0);
+    }
+    config_changed();
+}
+
 void commands_init()
 {
     cli_register("display", handle_display, "Display all config.");
@@ -564,6 +604,7 @@ void commands_init()
     cli_register("sense", handle_sense, "Set sensitivity config.");
     cli_register("debounce", handle_debounce, "Set debounce config.");
     cli_register("raw", handle_raw, "Show key raw readings.");
+    cli_register("tweak", handle_tweak, "Tweak options.");
     cli_register("save", handle_save, "Save config to flash.");
     cli_register("factory", handle_factory_reset, "Reset everything to default.");
     cli_register("nfc", handle_nfc, "NFC debug.");

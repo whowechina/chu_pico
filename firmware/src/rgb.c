@@ -91,6 +91,9 @@ static void drive_led()
     last = now;
 
     for (int i = 30; i >= 0; i--) {
+        if (chu_cfg->tweak.skip_split_led && (i % 2 == 1)) {
+            continue;
+        }
         pio_sm_put_blocking(pio0, 0, buf_main[i] << 8u);
     }
     for (int i = 31; i < count_of(buf_main); i++) {

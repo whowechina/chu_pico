@@ -47,6 +47,9 @@ static chu_cfg_t default_cfg = {
         .base = { 3800, 3800, 3800, 3800, 3800, 3800 },
         .trigger = { 20, 20, 20, 20, 20, 20 },
     },
+    .tweak = {
+        .skip_split_led = false,
+    },
 };
 
 chu_runtime_t chu_runtime = {0};
