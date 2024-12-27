@@ -1,14 +1,79 @@
-(footprint "ChuKeyBiasLeft" (version 20211014) (generator pcbnew)
-  (layer "F.Cu")
-  (tedit 0)
-  (attr smd)
-  (fp_text reference "REF**" (at 0 -14.3 unlocked) (layer "F.SilkS") hide
-    (effects (font (size 1 1) (thickness 0.15)))
-    (tstamp 4d1b571a-6738-4483-a586-88528a43ea85)
-  )
-  (fp_text value "ChuKeyBiasLeft" (at 0 14.4 unlocked) (layer "F.Fab") hide
-    (effects (font (size 1 1) (thickness 0.15)))
-    (tstamp a78c44d6-409f-4574-88da-bbfbb5d29d39)
-  )
-  (pad "1" smd roundrect (at 0 -0.4) (size 14.1 26.5) (drill (offset -0.1 0)) (layers "F.Cu") (roundrect_rratio 0.01923076923) (tstamp c91a4918-7c7b-44c4-a8fe-15b574de971a))
+(footprint "ChuKeyBiasLeft"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -14.3 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "4d1b571a-6738-4483-a586-88528a43ea85")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "ChuKeyBiasLeft"
+		(at 0 14.4 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "a78c44d6-409f-4574-88da-bbfbb5d29d39")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "45438b48-b4a6-4c54-85d2-14e629b7e566")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "db67bed5-9335-4fa4-84e3-3bed55f7b49f")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d1203a8e-fda2-448d-9660-49001c3c95a9")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(pad "1" smd roundrect
+		(at 0 0)
+		(size 14 25.7)
+		(drill
+			(offset -0.1 0)
+		)
+		(layers "F.Cu")
+		(roundrect_rratio 0.01923076923)
+		(uuid "c91a4918-7c7b-44c4-a8fe-15b574de971a")
+	)
 )

@@ -1,14 +1,76 @@
-(footprint "ChuKey" (version 20211014) (generator pcbnew)
-  (layer "F.Cu")
-  (tedit 0)
-  (attr smd)
-  (fp_text reference "REF**" (at 0 -14.3 unlocked) (layer "F.SilkS") hide
-    (effects (font (size 1 1) (thickness 0.15)))
-    (tstamp 4d1b571a-6738-4483-a586-88528a43ea85)
-  )
-  (fp_text value "ChuKey" (at 0 14.4 unlocked) (layer "F.Fab") hide
-    (effects (font (size 1 1) (thickness 0.15)))
-    (tstamp a78c44d6-409f-4574-88da-bbfbb5d29d39)
-  )
-  (pad "1" smd roundrect (at 0 -0.4) (size 14.3 26.5) (layers "F.Cu") (roundrect_rratio 0.01923076923) (tstamp c91a4918-7c7b-44c4-a8fe-15b574de971a))
+(footprint "ChuKey"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -14.3 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "4d1b571a-6738-4483-a586-88528a43ea85")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "ChuKey"
+		(at 0 14.4 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "a78c44d6-409f-4574-88da-bbfbb5d29d39")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "389cfbdb-1c63-4bf3-ba3d-1a4e1abc08ea")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "75eca35d-80cc-4ebc-abca-e6ad315db1dc")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "5b84ef15-dcd3-487a-93fa-529fd8ce2e94")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(pad "1" smd roundrect
+		(at 0 0)
+		(size 14.2 25.7)
+		(layers "F.Cu")
+		(roundrect_rratio 0.01923076923)
+		(uuid "c91a4918-7c7b-44c4-a8fe-15b574de971a")
+	)
 )
