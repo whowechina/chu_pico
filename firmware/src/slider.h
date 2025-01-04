@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 void slider_init();
+void slider_sensor_init();
 void slider_update();
 bool slider_touched(unsigned key);
 const uint16_t *slider_raw();

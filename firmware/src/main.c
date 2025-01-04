@@ -35,6 +35,7 @@
 #include "slider.h"
 #include "air.h"
 #include "rgb.h"
+#include "button.h"
 #include "lzfx.h"
 
 struct __attribute__((packed)) {
@@ -82,10 +83,15 @@ static void gen_joy_report()
 
     /* to cope with Redboard mapping which I don't really understand why */
     hid_joy.buttons = ((airmap >> 1) & 0x07) | ((airmap & 0x01) << 3) | (airmap & 0x30);
+
+    uint16_t aux = button_read();
+    hid_joy.buttons |= (aux & 0x01) ? 0x200 : 0; // START
+    hid_joy.buttons |= (aux & 0x02) ? 0x100 : 0; // SERVICE
+    hid_joy.buttons |= (aux & 0x04) ? 0x1000 : 0; // TEST
 }
 
 const uint8_t keycode_table[128][2] = { HID_ASCII_TO_KEYCODE };
-const uint8_t keymap[38 + 1] = NKRO_KEYMAP; // 32 keys, 6 air keys, 1 terminator
+const uint8_t keymap[41 + 1] = NKRO_KEYMAP; // 32 keys, 6 air keys, 3 aux, 1 terminator
 static void gen_nkro_report()
 {
     for (int i = 0; i < 32; i++) {
@@ -105,6 +111,18 @@ static void gen_nkro_report()
         uint8_t byte = code / 8;
         uint8_t bit = code % 8;
         if (airmap & (1 << i)) {
+            hid_nkro.keymap[byte] |= (1 << bit);
+        } else {
+            hid_nkro.keymap[byte] &= ~(1 << bit);
+        }
+    }
+
+    uint16_t aux = button_read();
+    for (int i = 0; i < 3; i++) {
+        uint8_t code = keycode_table[keymap[38 + i]][1];
+        uint8_t byte = code / 8;
+        uint8_t bit = code % 8;
+        if (aux & (1 << i)) {
             hid_nkro.keymap[byte] |= (1 << bit);
         } else {
             hid_nkro.keymap[byte] &= ~(1 << bit);
@@ -172,6 +190,28 @@ static void aime_run()
     }
 }
 
+static void runtime_ctrl()
+{
+    /* Just use long-press SERVICE to reset touch in runtime */
+    static bool applied = false;
+    static uint64_t press_time = 0;
+    static bool last_svc_button = false;
+    bool svc_button = button_read() & 0x02;
+
+    if (svc_button) {
+        if (!last_svc_button) {
+            press_time = time_us_64();
+            applied = false;
+        }
+        if (!applied && (time_us_64() - press_time > 2000000)) {
+            slider_sensor_init();
+            applied = true;
+        }
+    }
+
+    last_svc_button = svc_button;
+}
+
 static mutex_t core1_io_lock;
 static void core1_loop()
 {
@@ -199,10 +239,37 @@ static void core0_loop()
 
         slider_update();
         air_update();
+        button_update();
 
         gen_joy_report();
         gen_nkro_report();
         report_usb_hid();
+
+        runtime_ctrl();
+    }
+}
+
+/* if certain key pressed when booting, enter update mode */
+static void update_check()
+{
+    const uint8_t pins[] = BUTTON_DEF;
+    int pressed = 0;
+    for (int i = 0; i < count_of(pins); i++) {
+        uint8_t gpio = pins[i];
+        gpio_init(gpio);
+        gpio_set_function(gpio, GPIO_FUNC_SIO);
+        gpio_set_dir(gpio, GPIO_IN);
+        gpio_pull_up(gpio);
+        sleep_ms(1);
+        if (!gpio_get(gpio)) {
+            pressed++;
+        }
+    }
+
+    if (pressed >= 2) {
+        sleep_ms(100);
+        reset_usb_boot(0, 2);
+        return;
     }
 }
 
@@ -211,6 +278,9 @@ void init()
     sleep_ms(50);
     set_sys_clock_khz(150000, true);
     board_init();
+
+    update_check();
+
     tusb_init();
     stdio_init_all();
 
@@ -218,6 +288,7 @@ void init()
     mutex_init(&core1_io_lock);
     save_init(0xca34cafe, &core1_io_lock);
 
+    button_init();
     slider_init();
     air_init();
     rgb_init();

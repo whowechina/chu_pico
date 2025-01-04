@@ -27,6 +27,14 @@ static uint16_t touch[3];
 static unsigned touch_count[36];
 static bool present[3];
 
+void slider_sensor_init()
+{
+    for (int m = 0; m < 3; m++) {
+        mpr121_init(MPR121_ADDR + m);
+    }
+    slider_update_config();
+}
+
 void slider_init()
 {
     i2c_init(I2C_PORT, I2C_FREQ);
@@ -35,10 +43,7 @@ void slider_init()
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
     
-    for (int m = 0; m < 3; m++) {
-        present[m] = mpr121_init(MPR121_ADDR + m);
-    }
-    slider_update_config();
+    slider_sensor_init();
 }
 
 const char *slider_sensor_status()

@@ -8,7 +8,7 @@ link_libraries(pico_multicore pico_stdlib hardware_i2c hardware_spi
 
 function(make_firmware board board_def)
     add_executable(${board}
-        main.c slider.c air.c rgb.c save.c config.c commands.c
+        main.c slider.c air.c rgb.c button.c save.c config.c commands.c
         cli.c lzfx.c vl53l0x.c mpr121.c usb_descriptors.c)
     target_compile_definitions(${board} PUBLIC ${board_def})
     pico_enable_stdio_usb(${board} 1)
