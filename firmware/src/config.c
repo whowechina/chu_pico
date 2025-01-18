@@ -61,8 +61,11 @@ static void config_loaded()
         chu_cfg->tof = default_cfg.tof;
         config_changed();
     }
-    if ((chu_cfg->sense.filter & 0x0f) > 3 ||
-        ((chu_cfg->sense.filter >> 4) & 0x0f) > 3) {
+    if (
+        ((chu_cfg->sense.filter & 0x07) > 7) ||
+        ((chu_cfg->sense.filter >> 6) > 3) ||
+        (((chu_cfg->sense.filter >> 4) & 0x03) > 3)
+       ) {
         chu_cfg->sense.filter = default_cfg.sense.filter;
         config_changed();
     }
