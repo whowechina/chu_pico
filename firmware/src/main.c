@@ -306,7 +306,7 @@ void init()
     nfc_init();
     aime_init(cdc_aime_putc);
     aime_virtual_aic(chu_cfg->aime.virtual_aic);
-    aime_set_mode(chu_cfg->aime.mode);
+    aime_sub_mode(chu_cfg->aime.mode);
 
     cli_init("chu_pico>", "\n   << Chu Pico Controller >>\n"
                             " https://github.com/whowechina\n\n");

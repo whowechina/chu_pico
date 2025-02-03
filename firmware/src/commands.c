@@ -499,7 +499,7 @@ static void handle_nfc()
     nfc_rf_field(true);
     nfc_card_t card = nfc_detect_card();
     nfc_rf_field(false);
-    printf("Card: %s", nfc_card_name(card.card_type));
+    printf("Card: %s", nfc_card_type_str(card.card_type));
     for (int i = 0; i < card.len; i++) {
         printf(" %02x", card.uid[i]);
     }
@@ -515,7 +515,7 @@ static bool handle_aime_mode(const char *mode)
     } else {
         return false;
     }
-    aime_set_mode(chu_cfg->aime.mode);
+    aime_sub_mode(chu_cfg->aime.mode);
     config_changed();
     return true;
 }
