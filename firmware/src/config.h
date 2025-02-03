@@ -28,7 +28,7 @@ typedef struct __attribute__((packed)) {
         uint8_t pitch;
     } tof;
     struct {
-        int8_t filter;
+        uint8_t filter;
         int8_t global;
         uint8_t debounce_touch;
         uint8_t debounce_release;        
