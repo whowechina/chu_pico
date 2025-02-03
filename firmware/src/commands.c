@@ -328,10 +328,10 @@ static void handle_ir(int argc, char *argv[])
 static void handle_filter(int argc, char *argv[])
 {
     const char *usage = "Usage: filter <first> <second> [interval]\n"
-                        "Adjusts MPR121 noise filtering parameters. See datasheets for more details.\n"
+                        "Adjusts MPR121 noise filtering parameters (see datasheets).\n"
                         "    first:    First Filter Iterations  (FFI) [0..3]\n"
                         "    second:   Second Filter Iterations (SFI) [0..3]\n"
-                        "    interval: Electode Sample Interval (ESI) [0..7]\n";
+                        "    interval: Electrode Sample Interval (ESI) [0..7]\n";
     if ((argc < 2) || (argc > 3)) {
         printf(usage);
         return;
@@ -349,7 +349,7 @@ static void handle_filter(int argc, char *argv[])
         printf(usage);
         return;
     }
-    chu_cfg->sense.filter = (uint8_t)((ffi << 6) | (sfi << 4) | intv );
+    chu_cfg->sense.filter = (ffi << 6) | (sfi << 4) | intv;
     slider_update_config();
     config_changed();
     disp_sense();
