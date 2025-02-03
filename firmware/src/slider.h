@@ -1,10 +1,10 @@
 /*
- * Chu Pico Silder Keys
+ * Chu Pico Slider Keys
  * WHowe <github.com/whowechina>
  */
 
-#ifndef Silder_H
-#define Silder_H
+#ifndef Slider_H
+#define Slider_H
 
 #include <stdint.h>
 #include <stdbool.h>

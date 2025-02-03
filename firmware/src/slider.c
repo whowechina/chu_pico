@@ -1,5 +1,5 @@
 /*
- * Chu Pico Silder Keys
+ * Chu Pico Slider Keys
  * WHowe <github.com/whowechina>
  * 
  * MPR121 CapSense based Keys
