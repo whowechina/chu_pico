@@ -253,7 +253,7 @@ static void core0_loop()
         runtime_ctrl();
 
         sleep_until(next_frame);
-        next_frame += 1001;
+        next_frame += 1000;
     }
 }
 
