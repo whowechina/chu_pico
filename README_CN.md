@@ -63,8 +63,8 @@ https://discord.gg/M8f2PPQFEA
 * **错误：在器件看上去没有工作的时候就匆忙更换它。**  
   比如过早的假设 Raspberry Pi Pico 或其他模块是有问题的。
   请记住，器件绝大部分情况下都是好的，问题可能在焊接上。更换器件会带来额外的风险，比如损坏器件或 PCB 板。耐心和谨慎是至关重要的。首先查看原理图和 PCB 设计文件，并向社区寻求帮助。怀疑器件问题应该是你的最后选择。
-* **错误：没有正确焊接 Raspberry Pi Pico 的 3 个 USB 引脚。**  
-  这 3 个引脚位于 PCB 板的底部。很容易忘记焊接它们，或者在焊接过程中留下气泡。为了避免这种情况，从孔的一侧开始慢慢焊接，使用很少的焊丝和较多的焊剂。
+* **错误：没有正确焊接 Raspberry Pi Pico 的 2 个 USB 引脚。**  
+  这 2 个引脚位于 PCB 板的底部。很容易忘记焊接它们，或者在焊接过程中留下气泡。为了避免这种情况，从孔的一侧开始慢慢焊接，使用很少的焊丝和较多的焊剂。
 
 ### PCB
 * 前往 JLCPCB 下单，使用最新的 `Production\PCB\chu_main_xxx.zip` 文件，选择常规 FR-4 板材，黑色，厚度为 **1.6mm**。
@@ -98,15 +98,10 @@ https://discord.gg/M8f2PPQFEA
   <img src="doc/vl53l0x.jpg" width="60%">  
   你可以在同一个 PCB 上同时使用这两种传感器，固件会自动识别它们。
   <img src="doc/tof_mix.jpg" width="80%">
-
-* 2x 0603 5.1kohm 电阻 (R1, R2) 用于 USB。
-* 1x SN74LV1T34DBVR (SOT-23-5) 电平转换器 (U8)，如果你找不到这个，可以使用一个 0603 10ohm 电阻 (R3) 作为替代。  
-  https://www.lcsc.com/product-detail/Buffer-Driver-Transceiver_Texas-Instruments-SN74LV1T34DBVR_C100024.html
-
-  <img src="doc/pcb_1.png" width="90%">
-
+* 12x 0603 5.1kohm 电阻 (R1, R2)，用于 PCB 上所有电阻。
 * 8x 0603 1uF (0.1~1uF 都可以) 电容 (C1 to C8)，可选，建议使用。
-* 10x 0603 5.1kohm (1~5.1kohm 都可以) 电阻 (R4 to R13) 用于 I2C 上拉，超频 I2C 时需要。
+* 3x 松下 EVQP46B3M 超小微动开关。  
+  https://industry.panasonic.com/global/en/products/control/switch/light-touch/number/evqp46b3m
 
 ### 导光板
 * 找到一个服务商，使用 DXF 或 DWG 文件 `Production\CAD\chu_pico_lgp.*` 切割导光板，尺寸为 256mm*60mm，厚度为 1.8mm 到 2.0mm，越薄越好。2.0mm 的很容易找到，1.8mm 的很少见。我用的是 1.8mm 的。

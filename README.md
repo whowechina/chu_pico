@@ -60,7 +60,7 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
 * **MISTAKE: Rushing to replace components when something fails.**  
   Sometimes people prematurely assumes that the Raspberry Pi Pico or other modules are faulty.
   Be aware that desoldering and soldering large SMD components is a challenging task. It carries the risk of damaging the component or the PCB board. Patience and caution are crucial. Look at the schematics and PCB design files and ask help from community first. Questioning the integrity of these components should be your last resort.
-* **MISTAKE: Failing to properly solder the 3 USB pins of the Raspberry Pi Pico.**  
+* **MISTAKE: Failing to properly solder the 2 USB pins of the Raspberry Pi Pico.**  
   These pins are at the bottom side of the PCB. It's a common oversight to either forget to solder them or to leave air bubbles during the process. To avoid this, solder slowly from one side of the hole, using minimal solder wire and a generous amount of flux.
 
 ### PCB
@@ -92,14 +92,10 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
   <img src="doc/vl53l0x.jpg" width="60%">  
    You can use both of them in a same PCB, the firmware will identify each of them automatically.  
   <img src="doc/tof_mix.jpg" width="80%">
-* 2x 0603 5.1kohm resistors (R1, R2) for USB.
-* 1x SN74LV1T34DBVR (SOT-23-5) level shifter (U8), if you can't find one, use a 0603 10ohm resistor (R3) as an alternative.  
-  https://www.lcsc.com/product-detail/Buffer-Driver-Transceiver_Texas-Instruments-SN74LV1T34DBVR_C100024.html
-
-  <img src="doc/pcb_1.png" width="90%">
-
+* 12x 0603 5.1kohm resistors for all the resistors on PCB.
 * 8x 0603 1uF (0.1~1uF all fine) capacitors (C1 to C8), OPTIONAL, recommended.
-* 10x 0603 5.1kohm (1~5.1kohm all fine) resistors (R4 to R13) for I2C pull-up, required for overclock I2C.
+* 3x Panasonic EVQP46B3M tiny tactile switches.  
+  https://industry.panasonic.com/global/en/products/control/switch/light-touch/number/evqp46b3m
 
 ### Light Guide Panel
 * Find a service to cut a light guide panel using DXF or DWG file `Production\CAD\chu_pico_lgp.*`, the size is 256mm*60mm, 1.8mm to 2.0mm thickness, thinner is better for sensitivity. 2.0mm is easy to find, 1.8mm is rare. I used 1.8mm for my build.  
