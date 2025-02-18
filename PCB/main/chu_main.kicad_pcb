@@ -15265,7 +15265,7 @@
 		(descr "JST SH series connector, SM04B-SRSS-TB (http://www.jst-mfg.com/product/pdf/eng/eSH.pdf), generated with kicad-footprint-generator")
 		(tags "connector JST SH horizontal")
 		(property "Reference" "TOF1"
-			(at 5.3 0 360)
+			(at 5.3 0 0)
 			(layer "F.SilkS")
 			(uuid "76c6ad9b-f31e-4075-8539-0b99b107e539")
 			(effects
@@ -18593,7 +18593,7 @@
 			)
 		)
 		(property "Field4" "PN532"
-			(at -1 5.62 0)
+			(at -3.55 6.53 0)
 			(layer "F.SilkS")
 			(uuid "37381952-2a9f-4da3-b18b-ffd31ce9233b")
 			(effects
@@ -31659,7 +31659,7 @@
 		)
 		(fp_arc
 			(start -1.800001 0.379999)
-			(mid -2.409033 0.362746)
+			(mid -2.409036 0.362746)
 			(end -2.549998 -0.23)
 			(stroke
 				(width 0.1)
@@ -32017,7 +32017,7 @@
 		)
 		(fp_arc
 			(start -1.800001 0.379999)
-			(mid -2.409033 0.362746)
+			(mid -2.409036 0.362746)
 			(end -2.549998 -0.23)
 			(stroke
 				(width 0.1)
@@ -35313,7 +35313,7 @@
 		)
 		(fp_arc
 			(start -1.800001 0.379999)
-			(mid -2.409033 0.362746)
+			(mid -2.409036 0.362746)
 			(end -2.549998 -0.23)
 			(stroke
 				(width 0.1)
@@ -36699,124 +36699,111 @@
 		(layer "Edge.Cuts")
 		(uuid "ef0f3e3d-7ecb-4931-9b12-c3e19053b4a6")
 	)
-	(gr_text "V\n\n\nV"
-		(at 250.196 151.674 0)
+	(gr_text " V\nC\nD\n V"
+		(at 249.796 151.674 0)
 		(layer "F.SilkS")
 		(uuid "04245cf1-0473-4a84-b8fe-8516ad1f9e52")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text "V\n\n\nV"
-		(at 309.296 146.474 0)
+	(gr_text " V\nC\nD\n V"
+		(at 316.996 146.674 0)
 		(layer "F.SilkS")
 		(uuid "04857854-e8a3-4947-8a93-ad12560d73f3")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text "V\n C\n D\nG"
-		(at 240.996 151.574 0)
+	(gr_text "V\n\n\nG"
+		(at 241.996 151.774 0)
 		(layer "F.SilkS")
 		(uuid "15ebbce9-35da-40be-98c2-3790d6ec56f2")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text "V\n\n\nV"
-		(at 247.496 141.574 0)
+	(gr_text "D\nC"
+		(at 122.296 135.174 0)
 		(layer "F.SilkS")
-		(uuid "3b0a468d-e04c-4a1c-a6fe-bb518088b460")
+		(uuid "181d89db-f747-4e15-a521-e099b61da7f1")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text "V\n\n\nV"
-		(at 109.596 146.574 0)
+	(gr_text "V\n D\n C\nV"
+		(at 108.796 146.674 0)
 		(layer "F.SilkS")
 		(uuid "4456828b-c891-4ad3-af50-788f80f3d901")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text " G\nD\nC\n V"
-		(at 317.096 146.574 0)
+	(gr_text "V\n\n\nG"
+		(at 309.096 146.774 0)
 		(layer "F.SilkS")
 		(uuid "57ae968e-617d-4ce6-b003-995a978a0b98")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text " G\nD\nC\n V"
-		(at 129.876 137.234 0)
+	(gr_text " G\n\n\n V"
+		(at 128.996 137.174 0)
 		(layer "F.SilkS")
 		(uuid "5b05f75a-9222-40ae-b964-0271bd3adf1a")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text "V\n\n\nV"
-		(at 173.596 146.574 0)
+	(gr_text "V\n D\n C\nV"
+		(at 172.796 146.674 0)
 		(layer "F.SilkS")
-		(uuid "811d513d-f615-40b7-b0ae-b6a88e8efe58")
+		(uuid "84b83ea4-5cbe-4fa8-a9d2-b577ff28b459")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text " G\nD\nC\n V"
-		(at 181.096 146.574 0)
-		(layer "F.SilkS")
-		(uuid "8a2ecc56-85ac-4ed8-888f-dc5a6386ae7b")
-		(effects
-			(font
-				(size 1.15 1.4)
-				(thickness 0.2)
-				(bold yes)
-			)
-			(justify left bottom)
-		)
-	)
-	(gr_text "Chu Pico V1.6"
+	(gr_text "Chu Pico V1.61"
 		(at 102.376 132.274 0)
 		(layer "F.SilkS")
 		(uuid "8c01fe93-ed4f-4e47-b889-958a4494b311")
@@ -36827,26 +36814,52 @@
 			)
 		)
 	)
-	(gr_text " G\nD\nC\n V"
-		(at 117.446 146.574 0)
+	(gr_text "V\n D\n C\nV"
+		(at 246.796 141.674 0)
 		(layer "F.SilkS")
-		(uuid "c3faa8d7-3a82-4a2f-b6a3-3eb8c74cb2d5")
+		(uuid "b7e8e70e-23b3-4e6e-a122-b0dc63e9055e")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
 			(justify left bottom)
 		)
 	)
-	(gr_text " G\nD\nC\n V"
-		(at 255.296 141.474 0)
+	(gr_text "G\n\n\nV"
+		(at 117.696 146.674 0)
 		(layer "F.SilkS")
-		(uuid "ecd140a8-951a-4431-9da1-f8b3b2f3e7d8")
+		(uuid "c3faa8d7-3a82-4a2f-b6a3-3eb8c74cb2d5")
 		(effects
 			(font
-				(size 1.15 1.4)
+				(size 1.2 1.4)
+				(thickness 0.2)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "G\n\n\nV"
+		(at 255.696 141.674 0)
+		(layer "F.SilkS")
+		(uuid "caf16600-5688-4d60-aa9e-bf32ddf6d9a2")
+		(effects
+			(font
+				(size 1.2 1.4)
+				(thickness 0.2)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "G\n\n\nV"
+		(at 181.696 146.574 0)
+		(layer "F.SilkS")
+		(uuid "eebf422c-03d2-483c-aa06-18a086fb93aa")
+		(effects
+			(font
+				(size 1.2 1.4)
 				(thickness 0.2)
 				(bold yes)
 			)
@@ -58168,7 +58181,7 @@
 		(net 126)
 		(net_name "Net-(U1-USB2)")
 		(layer "B.Cu")
-		(uuid "dd001787-054a-48dc-a4a3-be31cccba7ca")
+		(uuid "174ec11d-c168-4706-bb33-2eaf62f12b51")
 		(name "$teardrop_padvia$")
 		(hatch full 0.1)
 		(priority 30000)
@@ -58207,7 +58220,7 @@
 		(net 118)
 		(net_name "Net-(U1-USB1)")
 		(layer "B.Cu")
-		(uuid "e74eae4c-96c7-47e8-9cea-f2e959b3be50")
+		(uuid "7ee0f07d-7430-40de-afca-6a752489d9b3")
 		(name "$teardrop_padvia$")
 		(hatch full 0.1)
 		(priority 30001)
