@@ -52,13 +52,18 @@ struct __attribute__((packed)) {
 
 void report_usb_hid()
 {
+    static uint64_t next_report_time = 0;
+
     if (tud_hid_ready()) {
         hid_joy.HAT = 0;
         hid_joy.VendorSpec = 0;
-        if ((chu_cfg->hid.joy) &&
-            (memcmp(&hid_joy, &sent_hid_joy, sizeof(hid_joy)) != 0)) {
-            if (tud_hid_report(REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy))) {
-                sent_hid_joy = hid_joy;
+        if (chu_cfg->hid.joy) {
+            if ((memcmp(&hid_joy, &sent_hid_joy, sizeof(hid_joy)) != 0) ||
+                (time_us_64() > next_report_time)) {
+                if (tud_hid_report(REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy))) {
+                    sent_hid_joy = hid_joy;
+                    next_report_time = time_us_64() + 2500; // forced report every 4ms
+                }
             }
         }
         if (chu_cfg->hid.nkro &&
