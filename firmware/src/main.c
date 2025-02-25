@@ -52,25 +52,29 @@ struct __attribute__((packed)) {
 
 void report_usb_hid()
 {
-    static uint64_t next_report_time = 0;
+    static uint64_t next_joy_time = 0;
+    static uint64_t next_nkro_time = 0;
 
     if (tud_hid_ready()) {
         hid_joy.HAT = 0;
         hid_joy.VendorSpec = 0;
         if (chu_cfg->hid.joy) {
             if ((memcmp(&hid_joy, &sent_hid_joy, sizeof(hid_joy)) != 0) ||
-                (time_us_64() > next_report_time)) {
+                (time_us_64() > next_joy_time)) {
                 if (tud_hid_report(REPORT_ID_JOYSTICK, &hid_joy, sizeof(hid_joy))) {
                     sent_hid_joy = hid_joy;
-                    next_report_time = time_us_64() + 2500; // forced report every 4ms
+                    next_joy_time = time_us_64() + 2500; // forced report every 4ms
                 }
             }
         }
-        if (chu_cfg->hid.nkro &&
-            (memcmp(&hid_nkro, &sent_hid_nkro, sizeof(hid_nkro)) != 0)) {
-            if (tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro))) {
-                sent_hid_nkro = hid_nkro;
-            }        
+        if (chu_cfg->hid.nkro) {
+            if ((memcmp(&hid_nkro, &sent_hid_nkro, sizeof(hid_nkro)) != 0) ||
+                (time_us_64() > next_nkro_time)) {
+                if (tud_hid_n_report(0x02, 0, &sent_hid_nkro, sizeof(sent_hid_nkro))) {
+                    sent_hid_nkro = hid_nkro;
+                    next_nkro_time = time_us_64() + 2500; // forced report every 4ms
+                }
+            }
         }
     }
 }
