@@ -30,7 +30,7 @@ static bool present[3];
 void slider_sensor_init()
 {
     for (int m = 0; m < 3; m++) {
-        mpr121_init(MPR121_ADDR + m);
+        present[m] = mpr121_init(MPR121_ADDR + m);
     }
     slider_update_config();
 }
