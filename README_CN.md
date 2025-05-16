@@ -93,8 +93,8 @@ https://discord.gg/M8f2PPQFEA
   你可以使用模块自带的引脚，但是你需要剪掉塑料垫。  
   <img src="doc/mpr121_solder3.jpg" width="60%">
 
-* 5x Sharp GP2Y0E03 或 ST VL53L0X ToF 传感器模块，你还需要一些排线。
-  https://www.lcsc.com/product-detail/Angle-Linear-Position-Sensors_Sharp-Microelectronics-GP2Y0E03_C920270.html
+* 5x Sharp GP2Y0E03 或 ST VL53L0X ToF 传感器模块，你还需要一些排线。注意下面这些照片是在早期版本 PCB 上拍的，上面的 LED 已经被更换为侧面出光的型号。  
+  https://www.lcsc.com/product-detail/Angle-Linear-Position-Sensors_Sharp-Microelectronics-GP2Y0E03_C920270.html  
   <img src="doc/gp2y0e03_solder.jpg" width="60%">  
   <img src="doc/vl53l0x.jpg" width="60%">  
   你可以在同一个 PCB 上同时使用这两种传感器，固件会自动识别它们。

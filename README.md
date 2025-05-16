@@ -87,8 +87,8 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
   <img src="doc/mpr121_solder2.jpg" width="60%">  
   You can use the pins comes with the module, but you need to cut away the plastic pads.  
   <img src="doc/mpr121_solder3.jpg" width="60%">
-* 5x Sharp GP2Y0E03 or ST VL53L0X ToF sensor modules, you need cables as well.  
-  https://www.lcsc.com/product-detail/Angle-Linear-Position-Sensors_Sharp-Microelectronics-GP2Y0E03_C920270.html
+* 5x Sharp GP2Y0E03 or ST VL53L0X ToF sensor modules, you need cables as well. Please note that the pictures are taken from older version of PCB, the LEDs have been changed to side-facing ones.  
+  https://www.lcsc.com/product-detail/Angle-Linear-Position-Sensors_Sharp-Microelectronics-GP2Y0E03_C920270.html  
   <img src="doc/gp2y0e03_solder.jpg" width="60%">  
   <img src="doc/vl53l0x.jpg" width="60%">  
    You can use both of them in a same PCB, the firmware will identify each of them automatically.  
