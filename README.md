@@ -46,7 +46,7 @@ You can check out my other cool projects.
 * Musec Pico: https://github.com/whowechina/musec_pico
 * Ju Pico: https://github.com/whowechina/ju_pico
 * Bishi Pico: https://github.com/whowechina/bishi_pico
-* Bishi Pico: https://github.com/whowechina/nos_pico
+* Nos Pico: https://github.com/whowechina/nos_pico
 
 ## **Disclaimer** ##
 I made this project in my personal time with no sponsorship. I will continue to improve the project. I have done my best to ensure that everything is accurate and functional, there's always a chance that mistakes may occur. I cannot be held responsible for any loss of your time or money that may result from using this open source project. Thank you for your understanding.
@@ -140,10 +140,10 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
   * PLA, PETG, ABS are all OK.
   * Layer height: 0.2mm
   * 4-6 walls, 50+% infill
-  * Support: Yes. If you have Bambu AMS system, use their special support material at interface layers.
+  * Support: No (unless specified).
 
-* Base: `Production\3D\chu_pico_base.stl`, dark gray filament.
-* Cover: `Production\3D\chu_pico_cover(_aime).stl`, dark gray filament.
+* Base: `Production\3D\chu_pico_base.stl`, dark gray filament, turn on support to have better screw holes.
+* Cover: `Production\3D\chu_pico_cover(_aime).stl`, dark gray filament, print up-side down.
 * Cover Base: `Production\3D\chu_pico_cover_base.stl`, **clear transparent (IMPORTANT)** filament.
 * Light Guide Panel Fixer: `Production\3D\chu_pico_lgp_fixer.stl`, color doesn't matter.
 

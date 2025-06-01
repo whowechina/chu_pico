@@ -49,7 +49,7 @@ https://discord.gg/M8f2PPQFEA
 * Musec Pico: https://github.com/whowechina/musec_pico
 * Ju Pico: https://github.com/whowechina/ju_pico
 * Bishi Pico: https://github.com/whowechina/bishi_pico
-* Bishi Pico: https://github.com/whowechina/nos_pico
+* Nos Pico: https://github.com/whowechina/nos_pico
 
 ## **声明** ##
 我在个人时间内制作了这个项目，没有任何赞助。我将继续改进这个项目。我已尽我所能确保所有内容的准确性和功能性，但总有可能出现错误。如果你因使用这个开源项目而造成时间或金钱的损失，我不能负责。感谢你的理解。
@@ -146,11 +146,10 @@ https://discord.gg/M8f2PPQFEA
   * PLA, PETG, ABS 都可以。  
   * 层高：0.2mm
   * 壁厚：4-6层，50%+ 填充
-  * 支撑：需要。如果你有 Bambu AMS 系统，使用他们的特殊支撑材料会更好。
+  * 支撑：没有明确说明，则不需要。
 
-* 基座：`Production\3D\chu_pico_base.stl`，深灰色。
-* 透红外盖板：`Production\3D\chu_pico_ir_cover(_aime).stl`，深灰色。
-* 盖板：`Production\3D\chu_pico_cover(_aime).stl`，深灰色。
+* 基座：`Production\3D\chu_pico_base.stl`，深灰色，需要支撑来让螺丝孔更好一点。
+* 盖板：`Production\3D\chu_pico_cover(_aime).stl`，深灰色，上下颠倒打印。
 * 盖板底座：`Production\3D\chu_pico_cover_base.stl`，**透明**（重要）。
 * 导光板固定器：`Production\3D\chu_pico_lgp_fixer.stl`，颜色无所谓。
 
