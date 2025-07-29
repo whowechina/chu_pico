@@ -5,6 +5,8 @@
  */
 
 #include <stdint.h>
+#include <string.h>
+
 #include "hardware/i2c.h"
 
 #include "mpr121.h"
@@ -66,7 +68,7 @@ static void write_reg(uint8_t addr, uint8_t reg, uint8_t val)
 
 static uint8_t read_reg(uint8_t addr, uint8_t reg)
 {
-    uint8_t value;
+    uint8_t value = 0;
     i2c_write_blocking_until(I2C_PORT, addr, &reg, 1, true,
                              time_us_64() + IO_TIMEOUT_US);
     i2c_read_blocking_until(I2C_PORT, addr, &value, 1, false,
@@ -147,6 +149,8 @@ static void mpr121_read_many(uint8_t addr, uint8_t reg, uint8_t *buf, int num)
 static void mpr121_read_many16(uint8_t addr, uint8_t reg, uint16_t *buf, int num)
 {
     uint8_t vals[num * 2];
+    memset(vals, 0, sizeof(vals));
+
     mpr121_read_many(addr, reg, vals, num * 2);
     for (int i = 0; i < num; i++) {
         buf[i] = (vals[i * 2 + 1] << 8) | vals[i * 2];
@@ -155,7 +159,7 @@ static void mpr121_read_many16(uint8_t addr, uint8_t reg, uint16_t *buf, int num
 
 uint16_t mpr121_touched(uint8_t addr)
 {
-    uint16_t touched;
+    uint16_t touched = 0;
     mpr121_read_many16(addr, MPR121_TOUCH_STATUS_REG, &touched, 1);
     return touched;
 }
