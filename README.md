@@ -169,7 +169,7 @@ You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
 This is not necessary for Chu Pico. But some people may prefer the traditional IR air tower, especially when they're using Chu Pico design for a full-sized controller.
 So hereby I provide the IR air tower design, with a pair of air tower PCBs and the firmware support.
 1. First, you need to order the sensor PCBs, the gerber file is `Production\PCB\chu_air_v*.zip`. It's for both sides of the air tower.
-2. Order the components, they're marked in the schematic. Then solder them to the PCB following the silkscreen.
+2. Solder components to the PCB following the silkscreen. About the components, see the notes below.
 3. For left side PCB, use J1 to connect to the Raspberry Pi Pico, and for the right side PCB, use J2. GPIO 3 -> A, GPIO 4 -> B, GPIO 5 -> C, ADC 0 (GPIO 26) -> Right S, ADC 1 (GPIO 27) -> Left S.  
   <img src="doc/air_tower_wiring.png" width="25%"> <img src="doc/chu_air_pcb.png" width="70%">
 
@@ -180,6 +180,18 @@ So hereby I provide the IR air tower design, with a pair of air tower PCBs and t
    * Place the air towers and watch the output of the diagnostics, higher value means beam is received.
    * Set the baseline after the towers are properly placed (command `ir baseline`).
    * Optionally, set the sensitivity, it's a percentage of expected change (command `ir trigger <1..100>`).
+
+#### Notes for the Components
+* D1, D2, D3 are IR333C-A IR LEDs;
+* Q2, Q4, Q6 are PT333-3B phototransistors.
+* Q1, Q3, Q5 are N-Channel MOSFETs with low Rds, such as AO3400, see calculations below.
+* R2, R4, R6 are current limiting resistors, see calculations below.
+* R1, R3, R5 are mosfet gate resistors, 10ohm is fine.
+* R7, R8, R9 are pull-up resistors, 2Kohm is fine.
+* R10 is a pull-down resistor, 10Kohm is fine.
+
+* Let's do the calculation for D1 as an example. To get proper signal strength, we want about 1A current for it.  
+  The current for D1 is calculated by `I = (Vcc - Vf) / (Rds + R2)`. Vcc is 3.3V, Vf is the forward voltage of D1 (about 2.6V@1A). For a low Rds N-Channel MOSFET such as AO3400, Rds is about 0.047ohm, so R2 should be about 0.7ohm to get 1A current. You can use other N-Channel MOSFETs, but you need to calculate the values accordingly.
 
 ### Firmware
 * UF2 file is in `Production\Firmware` folder.
