@@ -68,6 +68,7 @@ static void air_init_ir()
         gpio_init(IR_ABC[i]);
         gpio_set_dir(IR_ABC[i], GPIO_OUT);
         gpio_put(IR_ABC[i], 0);
+        gpio_set_drive_strength(IR_ABC[i], GPIO_DRIVE_STRENGTH_12MA);
     }
     for (int i = 0; i < count_of(IR_SIG); i++) {
         adc_init();
