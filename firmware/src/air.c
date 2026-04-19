@@ -180,21 +180,20 @@ static void air_update_tof()
 
 static void ir_read()
 {
-    for (int i = 0; i < count_of(IR_ABC); i++) {
-        gpio_put(IR_ABC[i], 1);
-        sleep_us(9);
+    static int phase = 0;
 
-        adc_select_input(IR_SIG[0]);
-        sleep_us(1);
-        ir_raw[i * 2] = adc_read();
+    gpio_put(IR_ABC[phase], 1);
+    sleep_us(20); // time for phototransistor to settle down
 
-        adc_select_input(IR_SIG[1]);
-        sleep_us(1);
-        ir_raw[i * 2 + 1] = adc_read();
-
-        gpio_put(IR_ABC[i], 0);
-        sleep_us(1);
+    for (int i = 0; i < 2; i++) {
+        adc_select_input(IR_SIG[i]);
+        sleep_us(2);
+        ir_raw[phase * 2 + i] = adc_read();
     }
+
+    gpio_put(IR_ABC[phase], 0);
+
+    phase = (phase + 1) % count_of(IR_ABC);
 }
 
 static void ir_judge()
@@ -207,7 +206,7 @@ static void ir_judge()
             threshold = threshold * IR_DEBOUNCE_PERCENT / 100;
         }
 
-        ir_blocked[i] = offset >= threshold;
+        ir_blocked[i] = (offset >= threshold);
     }
 }
 
