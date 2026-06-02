@@ -164,7 +164,10 @@ From top to bottom:
 * Light Guide Panel Fixer
 * Base
 
-You need **4x M3*12mm screws and 4x M3 hex nuts** to fix all things.
+Notes:
+* You need **4x M3\*12mm screws and 4x M3 hex nuts** to fix the housing.
+* You need **4x M2\*6mm screws** for extra fixation for the lgp area of the housing.
+* If you use the `_insert` version of the cover, you also need **4x M2\*3mm\*3mm heatset inserts**.
 
 7x silicone anti-slip pads can be applied to the bottom side of the base to provide stability when playing.  
 <img src="doc/silicone_pad.png" width="50%">
