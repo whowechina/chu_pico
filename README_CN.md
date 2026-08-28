@@ -154,7 +154,7 @@
 * 基座：`Production\3D\chu_pico_base.stl`，深灰色，需要支撑来让螺丝孔更好一点。
 * 盖板：`Production\3D\chu_pico_cover(_aime).stl`，深灰色，上下颠倒打印。
 * 盖板底座：`Production\3D\chu_pico_cover_base.stl`，**透明**（重要）。
-* 导光板固定器：`Production\3D\chu_pico_lgp_fixer.stl`，颜色无所谓。
+* 导光板固定器：`Production\3D\chu_pico_lgp_fixer.stl`，颜色无所谓。注意，新的版本里，它已经集成到基座中了。
 
 ### 组装爆炸图
 <img src="doc/assemble.png" width="80%">
@@ -166,7 +166,7 @@
 * 面板膜
 * 导光板
 * PCB
-* 导光板固定器
+* 导光板固定器（在新的版本中已集成到基座中）
 * 基座
 
 注意：

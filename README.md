@@ -149,7 +149,7 @@ Many DIY enthusiasts commonly make certain mistakes during the building process.
 * Base: `Production\3D\chu_pico_base.stl`, dark gray filament, turn on support to have better screw holes.
 * Cover: `Production\3D\chu_pico_cover(_aime).stl`, dark gray filament, print up-side down.
 * Cover Base: `Production\3D\chu_pico_cover_base.stl`, **clear transparent (IMPORTANT)** filament.
-* Light Guide Panel Fixer: `Production\3D\chu_pico_lgp_fixer.stl`, color doesn't matter.
+* Light Guide Panel Fixer: `Production\3D\chu_pico_lgp_fixer.stl`, color doesn't matter. Note that in newer revisions, it has been integrated into the base.
 
 ### Exploded View for Assembly
 <img src="doc/assemble.png" width="80%">
@@ -161,7 +161,7 @@ From top to bottom:
 * Panel Film
 * Light Guide Panel
 * PCB
-* Light Guide Panel Fixer
+* Light Guide Panel Fixer (integrated into the base in newer revisions)
 * Base
 
 Notes:
